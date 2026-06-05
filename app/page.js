@@ -4,7 +4,7 @@ import SiteNav from '../components/SiteNav';
 export default function HomePage() {
   return (
     <>
-      <SiteNav />
+      <SiteNav showDashboard />
       <header className="hero">
         <div className="hero-glow" />
         <div className="hero-inner">
