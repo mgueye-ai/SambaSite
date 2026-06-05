@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import DashboardLoginDropdown from './DashboardLoginDropdown';
 
 export default function SiteNav({ active = null, showBack = false, showDashboard = false }) {
   return (
@@ -14,9 +15,7 @@ export default function SiteNav({ active = null, showBack = false, showDashboard
             <li><a href="/#features">Features</a></li>
           </ul>
           {showDashboard && (
-            <Link href="/login" className={`btn-nav ${active === 'dashboard' ? 'active' : ''}`}>
-              Organizer Dashboard
-            </Link>
+            <DashboardLoginDropdown active={active === 'dashboard'} />
           )}
         </>
       )}

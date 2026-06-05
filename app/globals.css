@@ -97,6 +97,53 @@ button {
   background: rgba(255, 75, 140, 0.25);
 }
 
+.dash-login-wrap {
+  position: relative;
+}
+
+.dash-login-trigger {
+  cursor: pointer;
+}
+
+.dash-login-trigger.open {
+  background: rgba(255, 75, 140, 0.25);
+}
+
+.dash-login-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 320px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  z-index: 200;
+}
+
+.dash-login-panel .dash-login-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: var(--text);
+}
+
+.dash-login-form .input-wrap {
+  height: 42px;
+  margin-bottom: 12px;
+}
+
+.dash-login-form .field-label {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.dash-login-form .error-msg {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
 .back-link {
   color: var(--text-secondary);
   font-size: 14px;

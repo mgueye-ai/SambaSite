@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { checkEmail, login, logout, getSession } from '../lib/auth';
 
-export default function LoginForm() {
+export default function LoginForm({ variant = 'page', onClose }) {
   const router = useRouter();
+  const isDropdown = variant === 'dropdown';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailChecked, setEmailChecked] = useState(false);
@@ -15,6 +16,7 @@ export default function LoginForm() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (isDropdown) return;
     getSession().then(async (session) => {
       if (!session) return;
       const { getCurrentUser } = await import('../lib/auth');
@@ -22,7 +24,7 @@ export default function LoginForm() {
       if (user?.role === 'provider') router.replace('/dashboard');
       if (user?.role === 'admin') router.replace('/admin');
     });
-  }, [router]);
+  }, [router, isDropdown]);
 
   const handleEmailCheck = async () => {
     const result = await checkEmail(email);
@@ -61,11 +63,13 @@ export default function LoginForm() {
     }
 
     if (result.user.role === 'admin') {
+      onClose?.();
       router.push('/admin');
       return;
     }
 
     if (result.user.role === 'provider') {
+      onClose?.();
       router.push('/dashboard');
       return;
     }
@@ -75,53 +79,66 @@ export default function LoginForm() {
     setLoading(false);
   };
 
+  const form = (
+    <form onSubmit={handleSubmit} className={isDropdown ? 'dash-login-form' : undefined}>
+      <label className="field-label" htmlFor={isDropdown ? 'nav-email' : 'email'}>Email</label>
+      <div className={`input-wrap${emailChecked ? ' checked' : ''}`}>
+        <input
+          id={isDropdown ? 'nav-email' : 'email'}
+          type="email"
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); setEmailChecked(false); setShowPassword(false); }}
+          disabled={emailChecked}
+          placeholder="you@example.com"
+          required
+          autoComplete="email"
+        />
+        {emailChecked && (
+          <button type="button" className="input-action" onClick={() => { setEmailChecked(false); setShowPassword(false); setPassword(''); }}>
+            Change
+          </button>
+        )}
+      </div>
+
+      {showPassword && (
+        <>
+          <label className="field-label" htmlFor={isDropdown ? 'nav-password' : 'password'}>Password</label>
+          <div className="input-wrap">
+            <input
+              id={isDropdown ? 'nav-password' : 'password'}
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              required
+              autoComplete="current-password"
+            />
+          </div>
+        </>
+      )}
+
+      {error && <p className="error-msg">{error}</p>}
+
+      <button type="submit" className="btn-primary btn-full" disabled={loading} style={{ marginTop: isDropdown ? 12 : 16 }}>
+        {loading ? 'Signing in...' : showPassword ? 'Sign In' : 'Continue'}
+      </button>
+    </form>
+  );
+
+  if (isDropdown) {
+    return (
+      <div className="dash-login-panel">
+        <p className="dash-login-title">Sign in to your dashboard</p>
+        {form}
+      </div>
+    );
+  }
+
   return (
     <div className="auth-card">
       <h1>Organizer Dashboard</h1>
       <p className="auth-sub">Sign in with your organizer account to view analytics and manage your events.</p>
-
-      <form onSubmit={handleSubmit}>
-        <label className="field-label" htmlFor="email">Email</label>
-        <div className={`input-wrap ${emailChecked ? 'checked' : ''}`}>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); setEmailChecked(false); setShowPassword(false); }}
-            disabled={emailChecked}
-            placeholder="you@example.com"
-            required
-          />
-          {emailChecked && (
-            <button type="button" className="input-action" onClick={() => { setEmailChecked(false); setShowPassword(false); setPassword(''); }}>
-              Change
-            </button>
-          )}
-        </div>
-
-        {showPassword && (
-          <>
-            <label className="field-label" htmlFor="password">Password</label>
-            <div className="input-wrap">
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                required
-              />
-            </div>
-          </>
-        )}
-
-        {error && <p className="error-msg">{error}</p>}
-
-        <button type="submit" className="btn-primary btn-full" disabled={loading} style={{ marginTop: 16 }}>
-          {loading ? 'Signing in...' : showPassword ? 'Sign In' : 'Continue'}
-        </button>
-      </form>
-
+      {form}
       <p className="auth-note">
         Attendee accounts use the Samba mobile app. <Link href="/">Learn more →</Link>
       </p>
