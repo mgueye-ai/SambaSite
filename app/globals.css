@@ -65,9 +65,20 @@ button {
 }
 
 .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+.site-logo-icon {
+  display: block;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  flex-shrink: 0;
 }
 
 .nav-links {

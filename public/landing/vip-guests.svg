@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 520" role="img" aria-label="VIP guests at a premium event">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#090303"/>
+      <stop offset=".45" stop-color="#6d2709"/>
+      <stop offset="1" stop-color="#020202"/>
+    </linearGradient>
+    <radialGradient id="flare" cx="78%" cy="18%" r="50%">
+      <stop stop-color="#f5b642" stop-opacity=".9"/>
+      <stop offset=".32" stop-color="#ff8a00" stop-opacity=".25"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="620" height="520" fill="url(#bg)"/>
+  <rect width="620" height="520" fill="url(#flare)"/>
+  <path d="M0 396c104-60 202-72 323-41 115 29 205 16 297-34v199H0z" fill="#050202" opacity=".7"/>
+  <g transform="translate(116 94)">
+    <g>
+      <circle cx="124" cy="116" r="86" fill="#130706"/>
+      <path d="M50 110c52 25 109 22 165-6-14-57-46-87-96-90-48-2-78 29-69 96z" fill="#31120c"/>
+      <path d="M40 250c37-61 138-60 174 0l46 188H-6z" fill="#100504"/>
+      <rect x="64" y="94" width="54" height="28" rx="14" fill="#050505"/>
+      <rect x="128" y="94" width="54" height="28" rx="14" fill="#050505"/>
+      <path d="M92 152c30 18 62 16 91-2" stroke="#fff" stroke-opacity=".7" stroke-width="7" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(200 48)">
+      <circle cx="96" cy="104" r="78" fill="#160805"/>
+      <path d="M30 110c48 14 101 12 153-7-10-55-39-85-88-87-45-2-72 29-65 94z" fill="#3a160b"/>
+      <path d="M16 232c39-48 123-50 160 0l52 190H-26z" fill="#120604"/>
+      <circle cx="71" cy="106" r="11" fill="#050505"/>
+      <circle cx="125" cy="106" r="11" fill="#050505"/>
+      <path d="M70 150c27 14 52 13 76-3" stroke="#fff" stroke-opacity=".6" stroke-width="6" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

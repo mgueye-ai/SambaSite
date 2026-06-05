@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-label="Singer performing under amber stage lights">
+  <defs>
+    <radialGradient id="bg" cx="45%" cy="30%" r="70%">
+      <stop offset="0" stop-color="#f5b642"/>
+      <stop offset=".35" stop-color="#8a3b0b"/>
+      <stop offset="1" stop-color="#050303"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#fff2b8" stop-opacity=".7"/>
+      <stop offset=".5" stop-color="#ff8a00" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".9"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>
+  <circle cx="118" cy="95" r="82" fill="#ffe6a1" opacity=".22"/>
+  <circle cx="478" cy="112" r="42" fill="#f5b642" opacity=".42" filter="url(#glow)"/>
+  <path d="M0 425c120-68 236-93 347-74 92 15 175 55 253 118v131H0z" fill="#070403" opacity=".72"/>
+  <g transform="translate(180 118)">
+    <path d="M152 44c44 7 72 44 73 89 1 42-20 77-57 91-26 10-69 6-95-21-28-30-33-75-11-113 18-32 51-51 90-46z" fill="#130907"/>
+    <path d="M99 212c42 31 91 29 133 0l30 42 39 164H41l35-164z" fill="#1b0b08"/>
+    <path d="M69 246c59 38 129 39 194 0" fill="none" stroke="#f5b642" stroke-width="5" opacity=".55"/>
+    <path d="M127 107c28 24 66 26 103 5-8-45-34-70-78-75-44-4-78 25-89 74 22 8 44 7 64-4z" fill="url(#rim)" opacity=".9"/>
+    <rect x="204" y="158" width="132" height="24" rx="12" fill="#050505" transform="rotate(-13 204 158)"/>
+    <circle cx="339" cy="143" r="23" fill="#121212"/>
+    <path d="M260 174l94-24" stroke="#f5b642" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+  </g>
+  <g opacity=".75" stroke="#f5b642" stroke-width="2">
+    <path d="M56 470l29-50 27 42"/>
+    <path d="M454 456l25-54 34 54"/>
+    <path d="M382 483l19-44 23 43"/>
+  </g>
+</svg>

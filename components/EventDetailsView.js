@@ -97,7 +97,7 @@ export default function EventDetailsView({ event }) {
 
   const handleShare = async () => {
     const url = `${SITE_URL}/events/${event.id}`;
-    const text = `🎉 Check out ${event.title}!\n📅 ${event.dateLabel}${event.timeLabel ? ` · ${event.timeLabel}` : ''}\n📍 ${event.venue || event.formattedAddress}\n${url}`;
+    const text = `Check out ${event.title}!\n${event.dateLabel}${event.timeLabel ? ` · ${event.timeLabel}` : ''}\n${event.venue || event.formattedAddress}\n${url}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: event.title, text });

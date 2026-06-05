@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 900" role="img" aria-label="Cinematic movie premiere poster">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#210606"/>
+      <stop offset=".42" stop-color="#7b210d"/>
+      <stop offset=".78" stop-color="#090202"/>
+      <stop offset="1" stop-color="#000"/>
+    </linearGradient>
+    <radialGradient id="light" cx="60%" cy="20%" r="56%">
+      <stop stop-color="#ffb44b" stop-opacity=".85"/>
+      <stop offset=".35" stop-color="#a84415" stop-opacity=".3"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+  </defs>
+  <rect width="720" height="900" fill="url(#bg)"/>
+  <rect width="720" height="900" fill="url(#light)"/>
+  <circle cx="548" cy="156" r="96" fill="#f5b642" opacity=".15" filter="url(#soft)"/>
+  <g opacity=".42">
+    <path d="M0 158c167 36 270 108 368 196 110 98 208 163 352 174v373H0z" fill="#000"/>
+    <path d="M37 702c142-86 328-98 546-35" stroke="#f5b642" stroke-opacity=".14" stroke-width="2" fill="none"/>
+  </g>
+  <g transform="translate(350 212)">
+    <path d="M83 0c76 8 129 73 129 151 0 79-55 143-134 150-58 5-121-24-148-84-27-59-14-128 33-174C-5 12 36-5 83 0z" fill="#140606"/>
+    <path d="M-56 118c72 26 152 25 244-2-8-68-43-108-106-116C18-9-34 36-56 118z" fill="#30120c"/>
+    <path d="M-28 302c69 37 143 36 209-2l55 327H-98z" fill="#100404"/>
+    <path d="M-23 318c62 27 132 27 200 0" stroke="#ff8a00" stroke-opacity=".38" stroke-width="6"/>
+  </g>
+  <g transform="translate(66 110)">
+    <rect width="148" height="42" rx="21" fill="#000" opacity=".65"/>
+    <text x="74" y="28" text-anchor="middle" font-family="Arial, sans-serif" font-size="19" font-weight="800" letter-spacing="3" fill="#f5b642">FEATURED</text>
+  </g>
+  <g transform="translate(72 600)">
+    <text font-family="Impact, Arial Black, sans-serif" font-size="96" letter-spacing="2" fill="#fff">SINNERS</text>
+    <text y="58" font-family="Arial, sans-serif" font-size="25" font-weight="800" letter-spacing="4" fill="#f5b642">MOVIE PREMIERE</text>
+    <text y="96" font-family="Arial, sans-serif" font-size="25" font-weight="700" letter-spacing="2" fill="#fff" opacity=".9">TONIGHT · CANAL OLYMPIA</text>
+  </g>
+</svg>

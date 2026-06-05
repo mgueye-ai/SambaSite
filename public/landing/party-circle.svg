@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-label="Smiling guest at a vibrant party">
+  <defs>
+    <radialGradient id="bg" cx="35%" cy="25%" r="75%">
+      <stop stop-color="#ffce73"/>
+      <stop offset=".28" stop-color="#a94314"/>
+      <stop offset=".7" stop-color="#36104d"/>
+      <stop offset="1" stop-color="#050205"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="12"/></filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#bg)"/>
+  <g filter="url(#glow)" opacity=".75">
+    <circle cx="98" cy="135" r="42" fill="#f5b642"/>
+    <circle cx="500" cy="150" r="62" fill="#8e2de2"/>
+    <circle cx="452" cy="420" r="72" fill="#ff8a00"/>
+  </g>
+  <path d="M0 430c95-49 177-59 262-28 99 37 203 47 338-23v221H0z" fill="#070304" opacity=".72"/>
+  <g transform="translate(176 120)">
+    <circle cx="128" cy="126" r="102" fill="#120706"/>
+    <path d="M36 126c34 22 108 26 185-2-8-70-46-111-102-111S30 57 36 126z" fill="#2c120c"/>
+    <path d="M32 262c43-52 144-58 196 0l58 220H-24z" fill="#160806"/>
+    <path d="M78 150c32 22 71 22 104 0" stroke="#fff" stroke-opacity=".72" stroke-width="9" stroke-linecap="round"/>
+    <rect x="50" y="105" width="70" height="34" rx="17" fill="#050505"/>
+    <rect x="132" y="105" width="70" height="34" rx="17" fill="#050505"/>
+    <path d="M120 121h12" stroke="#050505" stroke-width="7"/>
+    <path d="M66 104c15 18 35 17 48 0" stroke="#f5b642" stroke-width="4" opacity=".7"/>
+    <path d="M145 104c15 18 35 17 48 0" stroke="#f5b642" stroke-width="4" opacity=".7"/>
+  </g>
+</svg>

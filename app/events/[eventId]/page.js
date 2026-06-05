@@ -10,7 +10,7 @@ export async function generateMetadata({ params }) {
 
   const description = event.description?.slice(0, 160) || `${event.title} — ${event.dateLabel} at ${event.venue}`;
   const url = `${SITE_URL}/events/${eventId}`;
-  const ogImage = event.coverImage || `${SITE_URL}/icon`;
+  const ogImage = event.coverImage || `${SITE_URL}/logo.png`;
 
   return {
     title: `${event.title} — Samba`,
