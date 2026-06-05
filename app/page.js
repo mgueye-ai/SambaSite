@@ -134,7 +134,7 @@ export default function HomePage() {
       <section className="cta-section">
         <h2>Ready to host your next event?</h2>
         <p>Sign in to your organizer dashboard or share event links so fans can buy tickets instantly.</p>
-        <Link href="/login" className="btn-primary btn-lg">Organizer Dashboard</Link>
+        <Link href="/login" className="btn-primary btn-lg">Dashboard</Link>
       </section>
 
       <footer className="site-footer">

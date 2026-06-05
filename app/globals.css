@@ -101,47 +101,138 @@ button {
   position: relative;
 }
 
-.dash-login-trigger {
+.dash-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(255, 75, 140, 0.9), rgba(224, 53, 106, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 14px rgba(255, 75, 140, 0.25);
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
   cursor: pointer;
 }
 
-.dash-login-trigger.open {
-  background: rgba(255, 75, 140, 0.25);
+.dash-nav-btn:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 6px 20px rgba(255, 75, 140, 0.35);
+}
+
+.dash-nav-btn.open {
+  filter: brightness(1.1);
+  box-shadow: 0 6px 20px rgba(255, 75, 140, 0.4);
+}
+
+.dash-nav-chevron {
+  opacity: 0.85;
+  transition: transform 0.2s;
+}
+
+.dash-nav-btn.open .dash-nav-chevron {
+  transform: rotate(180deg);
 }
 
 .dash-login-dropdown {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 12px);
   right: 0;
-  width: 320px;
-  padding: 20px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  width: 340px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 75, 140, 0.08);
   z-index: 200;
+  overflow: hidden;
+  animation: dashDropIn 0.2s ease;
 }
 
-.dash-login-panel .dash-login-title {
-  font-size: 14px;
+@keyframes dashDropIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.dash-login-dropdown-accent {
+  height: 3px;
+  background: linear-gradient(90deg, #ff4b8c, #40e0ff);
+}
+
+.dash-login-dropdown-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 20px 0;
+}
+
+.dash-login-dropdown-label {
+  font-size: 10px;
   font-weight: 700;
-  margin-bottom: 14px;
-  color: var(--text);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 2px;
+}
+
+.dash-login-dropdown-heading {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.dash-login-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.05);
+  transition: background 0.15s, color 0.15s;
+}
+
+.dash-login-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.dash-login-panel {
+  padding: 16px 20px 20px;
 }
 
 .dash-login-form .input-wrap {
-  height: 42px;
+  height: 44px;
   margin-bottom: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dash-login-form .input-wrap:focus-within {
+  border-color: rgba(255, 75, 140, 0.5);
+  background: rgba(255, 75, 140, 0.04);
 }
 
 .dash-login-form .field-label {
-  font-size: 12px;
-  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-bottom: 5px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.dash-login-form .btn-primary {
+  border-radius: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
 .dash-login-form .error-msg {
   margin-top: 8px;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .back-link {

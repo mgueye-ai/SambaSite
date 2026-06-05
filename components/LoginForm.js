@@ -126,12 +126,7 @@ export default function LoginForm({ variant = 'page', onClose }) {
   );
 
   if (isDropdown) {
-    return (
-      <div className="dash-login-panel">
-        <p className="dash-login-title">Sign in to your dashboard</p>
-        {form}
-      </div>
-    );
+    return <div className="dash-login-panel">{form}</div>;
   }
 
   return (
