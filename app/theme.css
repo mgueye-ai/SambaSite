@@ -1,0 +1,399 @@
+/* Samba app-matched professional theme */
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
+}
+
+.logo {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ── Buttons & CTAs ── */
+.btn-primary,
+.app-login-btn,
+.sdc-create-submit,
+.sdc-action-btn {
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+
+.btn-primary:hover,
+.app-login-btn:hover:not(:disabled),
+.sdc-create-submit:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
+  filter: brightness(0.92);
+}
+
+.btn-secondary:hover {
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.btn-nav {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.btn-nav:hover {
+  background: var(--surface-3);
+}
+
+/* ── Login ── */
+.app-login-brand {
+  color: var(--text);
+  font-weight: 700;
+  font-size: 32px;
+}
+
+.app-login-title {
+  font-weight: 600;
+  font-size: 24px;
+}
+
+.app-login-input input:focus {
+  border-color: var(--border);
+  background: var(--surface-2);
+}
+
+.app-login-edit {
+  color: var(--text-secondary);
+}
+
+.app-login-spinner {
+  border-top-color: var(--text-secondary);
+}
+
+/* ── Marketing hero (subtle, no pink glow) ── */
+.hero-glow {
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
+}
+
+.hero h1 {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.hero-badge {
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.stat-value,
+.revenue-amount {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ── Dashboard shell ── */
+.sdc-page {
+  background: var(--bg);
+}
+
+.sdc-sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border-subtle);
+}
+
+.sdc-logo {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.sdc-logo-icon {
+  border-radius: 6px;
+}
+
+.sdc-sidebar-badge {
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.sdc-admin .sdc-sidebar-badge {
+  color: var(--text-secondary);
+}
+
+.sdc-nav-icon {
+  display: none;
+}
+
+.sdc-nav-item {
+  font-weight: 500;
+  font-size: 13px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+}
+
+.sdc-nav-item.active {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.sdc-admin .sdc-nav-item.active {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+.sdc-lip {
+  background: var(--surface);
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+  box-shadow: none;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sdc-lip-title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.sdc-lip-stat strong {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.sdc-balance-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.sdc-balance-amount {
+  font-weight: 700;
+  font-size: 32px;
+  letter-spacing: -0.02em;
+}
+
+.sdc-withdraw-btn {
+  background: var(--text);
+  color: var(--bg);
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.sdc-withdraw-btn:disabled {
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+
+/* ── Dashboard cards ── */
+.sdc-card,
+.sdc-event-card,
+.sdc-create-section,
+.sdc-create-host,
+.sdc-create-live-preview,
+.sdc-create-cover,
+.sdc-ticket-card,
+.sdc-create-success,
+.sdc-hero-stat {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.sdc-revenue-hero {
+  background: var(--surface);
+  border-color: var(--border-subtle);
+}
+
+.sdc-card-head h3,
+.sdc-create-section h2 {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sdc-revenue-amount {
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.sdc-hero-stat-val {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.sdc-hero-stat.accent .sdc-hero-stat-val {
+  color: var(--text);
+}
+
+.sdc-period,
+.sdc-filter {
+  font-weight: 500;
+  font-size: 12px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+}
+
+.sdc-period.active,
+.sdc-filter.active {
+  background: var(--surface-3);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.sdc-live-banner {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  font-weight: 500;
+}
+
+.sdc-live-dot {
+  background: var(--success);
+}
+
+.sdc-live-banner button {
+  color: var(--text-secondary);
+}
+
+.sdc-hbar-fill {
+  background: var(--text-secondary) !important;
+}
+
+.sdc-toast {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.sdc-badge-live,
+.sdc-badge-verified,
+.sdc-badge-checked_in {
+  color: var(--success);
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.sdc-badge-upcoming {
+  color: var(--text-secondary);
+  background: var(--surface-2);
+}
+
+.sdc-link-btn,
+.sdc-action-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.sdc-action-btn {
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+}
+
+.sdc-toggle.on {
+  color: var(--text);
+  border-color: var(--border);
+  background: var(--surface-3);
+}
+
+.sdc-empty-card {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+}
+
+.sdc-impersonate {
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sdc-impersonate button {
+  color: var(--text);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+}
+
+.sdc-avatar-ph {
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+}
+
+.dash-avatar-ph {
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ── Create event form ── */
+.sdc-field input,
+.sdc-field textarea,
+.sdc-includes input,
+.sdc-select,
+.sdc-search {
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  font-weight: 400;
+}
+
+.sdc-field input:focus,
+.sdc-field textarea:focus {
+  border-color: var(--border);
+}
+
+.sdc-create-code {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.sdc-create-code strong {
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+
+/* ── Legacy dash components ── */
+.dash-page {
+  background: var(--bg);
+}
+
+.dash-header,
+.revenue-card,
+.dash-card {
+  background: var(--surface);
+  border-color: var(--border-subtle);
+}
+
+.period-pill.active {
+  background: var(--surface-3);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.period-pill {
+  font-weight: 500;
+}
+
+.dash-tab.active {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.admin-stat-card.accent {
+  border-color: var(--border);
+}
+
+.admin-stat-card.accent .admin-stat-value {
+  color: var(--text);
+}

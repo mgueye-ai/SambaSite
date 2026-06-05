@@ -225,7 +225,7 @@ export default function OrganizerDashboard() {
                 <AreaChart
                   data={trends.revenue30d?.map((d) => d.tickets) || []}
                   labels={trendLabels}
-                  color="#60a5fa"
+                  color="#888888"
                   formatY={fmtN}
                 />
               </SdcCard>
@@ -234,9 +234,9 @@ export default function OrganizerDashboard() {
             <div className="sdc-grid-3">
               <SdcCard title="Event breakdown">
                 <DonutChart segments={[
-                  { label: 'Live', value: stats.live.length, color: '#4ade80' },
-                  { label: 'Upcoming', value: stats.upcoming.length, color: '#FF4B8C' },
-                  { label: 'Past', value: stats.past.length, color: '#a78bfa' },
+                  { label: 'Live', value: stats.live.length, color: '#4CAF50' },
+                  { label: 'Upcoming', value: stats.upcoming.length, color: '#AAAAAA' },
+                  { label: 'Past', value: stats.past.length, color: '#404040' },
                 ]} />
               </SdcCard>
               <SdcCard title="Top events · tickets">
@@ -246,7 +246,7 @@ export default function OrganizerDashboard() {
               </SdcCard>
               <SdcCard title="Top events · revenue">
                 {topRev.length ? topRev.map((e) => (
-                  <HBar key={e.id} label={e.title} value={e.revenue || 0} maxValue={maxR} color="#a78bfa" display={fmt$(e.revenue || 0)} />
+                  <HBar key={e.id} label={e.title} value={e.revenue || 0} maxValue={maxR} color="#666666" display={fmt$(e.revenue || 0)} />
                 )) : <p className="sdc-empty">No events yet</p>}
               </SdcCard>
             </div>
@@ -435,7 +435,7 @@ export default function OrganizerDashboard() {
             <div className="sdc-grid-2">
               <SdcCard title="Ticket types">
                 {Object.keys(guests.ticketTypeBreakdown).length ? Object.entries(guests.ticketTypeBreakdown).map(([type, count]) => (
-                  <HBar key={type} label={type} value={count} maxValue={guests.totalTickets || 1} color="#60a5fa" />
+                  <HBar key={type} label={type} value={count} maxValue={guests.totalTickets || 1} color="#666666" />
                 )) : <p className="sdc-empty">No data yet</p>}
               </SdcCard>
               <SdcCard title="Top returners">

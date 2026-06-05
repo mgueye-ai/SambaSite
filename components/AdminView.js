@@ -134,7 +134,7 @@ export default function AdminView() {
 
             <div className="sdc-grid-2">
               <SdcCard title="Platform revenue" meta="Last 30 days" wide>
-                <AreaChart data={revenueByDay.data} labels={revenueByDay.labels} color="#40E0FF" />
+                <AreaChart data={revenueByDay.data} labels={revenueByDay.labels} color="#888888" />
               </SdcCard>
               <SdcCard title="Platform snapshot">
                 <div className="sdc-kv"><span>Attendees</span><strong>{fmtN(data.attendees)}</strong></div>
@@ -148,7 +148,7 @@ export default function AdminView() {
             <div className="sdc-grid-2">
               <SdcCard title="Top organizers" meta="By revenue">
                 {topOrgs.map((org) => (
-                  <HBar key={org.id} label={org.organizationName} value={org.revenue || 0} maxValue={maxOrgRev} color="#40E0FF" display={fmt$(org.revenue || 0)} />
+                  <HBar key={org.id} label={org.organizationName} value={org.revenue || 0} maxValue={maxOrgRev} color="#666666" display={fmt$(org.revenue || 0)} />
                 ))}
               </SdcCard>
               <SdcCard title="Recent events" meta="Latest 8">

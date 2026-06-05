@@ -212,7 +212,7 @@ export default function ExploreView({ events }) {
             <Icon
               name="calendar"
               size={16}
-              color={calOpen || dateFilter ? '#FF4B8C' : 'rgba(255,255,255,0.6)'}
+              color={calOpen || dateFilter ? '#FFFFFF' : 'rgba(255,255,255,0.6)'}
             />
           </button>
         </div>
@@ -231,7 +231,7 @@ export default function ExploreView({ events }) {
 
         {dateFilter && !calOpen && (
           <div className="ex-date-chip">
-            <Icon name="calendar" size={11} color="#FF4B8C" />
+            <Icon name="calendar" size={11} color="#AAAAAA" />
             <span>
               {dateFilter.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </span>
