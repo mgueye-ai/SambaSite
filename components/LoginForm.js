@@ -20,6 +20,7 @@ export default function LoginForm() {
       const { getCurrentUser } = await import('../lib/auth');
       const user = await getCurrentUser();
       if (user?.role === 'provider') router.replace('/dashboard');
+      if (user?.role === 'admin') router.replace('/admin');
     });
   }, [router]);
 
@@ -118,6 +119,8 @@ export default function LoginForm() {
 
       <p className="auth-note">
         Attendee accounts use the Samba mobile app. <Link href="/">Learn more →</Link>
+        <br />
+        Samba team? <Link href="/admin/login">Admin login →</Link>
       </p>
     </div>
   );
