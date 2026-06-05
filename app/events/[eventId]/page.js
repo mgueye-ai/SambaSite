@@ -11,6 +11,7 @@ export async function generateMetadata({ params }) {
 
   const description = event.description?.slice(0, 160) || `${event.title} — ${event.dateLabel} at ${event.venue}`;
   const url = `${SITE_URL}/events/${eventId}`;
+  const ogImage = event.coverImage || `${SITE_URL}/icon`;
 
   return {
     title: `${event.title} — Samba`,
@@ -19,14 +20,15 @@ export async function generateMetadata({ params }) {
       title: event.title,
       description,
       url,
-      images: event.coverImage ? [{ url: event.coverImage }] : [],
+      siteName: 'Samba',
+      images: [{ url: ogImage }],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
       title: event.title,
       description,
-      images: event.coverImage ? [event.coverImage] : [],
+      images: [ogImage],
     },
   };
 }
