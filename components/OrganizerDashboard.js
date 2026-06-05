@@ -373,7 +373,7 @@ export default function OrganizerDashboard() {
             <SdcCard title="Available balance" className="sdc-payout-hero">
               <p className="sdc-revenue-amount">{fmt$(payouts.balance)}</p>
               <p className="sdc-revenue-label">Ready after platform fees</p>
-              <button type="button" className="sdc-withdraw-btn" disabled={payouts.balance <= 0}>Request payout in app</button>
+              <button type="button" className="sdc-withdraw-btn" disabled={payouts.balance <= 0}>Withdraw</button>
             </SdcCard>
             <SdcCard title="Earnings breakdown">
               <div className="sdc-kv"><span>Gross revenue</span><strong>{fmt$(payouts.grossRevenue)}</strong></div>

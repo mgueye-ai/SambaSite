@@ -102,7 +102,7 @@ export default function DashboardLayout({
                   <strong>{processing}</strong>
                 </div>
               )}
-              <button type="button" className="sdc-withdraw-btn" disabled>Withdraw in app</button>
+              <button type="button" className="sdc-withdraw-btn" disabled>Withdraw</button>
             </div>
           )}
         </header>
