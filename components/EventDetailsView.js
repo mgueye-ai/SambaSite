@@ -125,7 +125,7 @@ export default function EventDetailsView({ event }) {
   return (
     <div className="ed-page">
       <nav className="ed-float-nav">
-        <Link href="/" className="ed-back-btn">
+        <Link href="/explore" className="ed-back-btn">
           <Icon name="chevron-left" size={18} />
           <span>Explore</span>
         </Link>
