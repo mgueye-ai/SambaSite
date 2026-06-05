@@ -1,1 +1,6 @@
 Samba/
+node_modules/
+.next/
+.env.local
+.env*.local
+!.env.local.example
