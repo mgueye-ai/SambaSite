@@ -7,106 +7,65 @@ import { getCurrentUser, logout } from '../lib/auth';
 import { apiFetch } from '../lib/api-client';
 import { getImpersonation, clearImpersonation } from '../lib/impersonation';
 import { computeDashboardStats } from '../lib/events';
-
-const fmt$ = (n) => {
-  if (n >= 1000000) return `$${(n / 1000000).toFixed(1)}M`;
-  if (n >= 1000) return `$${(n / 1000).toFixed(1)}k`;
-  return `$${Math.round(n)}`;
-};
+import DashboardLayout from './dashboard/DashboardLayout';
+import {
+  AreaChart, DashboardAvatar, DonutChart, EventCard, fmt$, fmtN, HBar, HeroStat,
+  PeriodPills, SectionLabel, Sparkline, SdcCard, StatusBadge,
+} from './dashboard/ui';
 
 const PERIODS = ['day', 'week', 'month', 'year', 'all'];
 const TABS = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'events', label: 'Events' },
-  { id: 'payouts', label: 'Payouts' },
-  { id: 'tickets', label: 'Tickets' },
-  { id: 'trends', label: 'Trends' },
-  { id: 'guests', label: 'Guests' },
-  { id: 'settings', label: 'Settings' },
+  { id: 'overview', label: 'Overview', icon: '◈' },
+  { id: 'events', label: 'Events', icon: '▤' },
+  { id: 'payouts', label: 'Payouts', icon: '◧' },
+  { id: 'tickets', label: 'Tickets', icon: '◫' },
+  { id: 'guests', label: 'Guests', icon: '◬' },
+  { id: 'settings', label: 'Settings', icon: '⚙' },
 ];
 
 function getAvatarUrl(profile, user) {
-  return profile?.avatar
-    || profile?.providerInfo?.partyLogo
-    || profile?.profilePicture
-    || user?.providerInfo?.partyLogo
-    || user?.profilePicture
-    || null;
+  return profile?.avatar || profile?.providerInfo?.partyLogo || profile?.profilePicture
+    || user?.providerInfo?.partyLogo || user?.profilePicture || null;
 }
 
 function getDisplayName(profile, user, impersonation) {
-  return impersonation?.organizerName
-    || profile?.providerInfo?.organizationName
-    || profile?.name
-    || user?.providerInfo?.organizationName
-    || user?.name
-    || 'Organizer';
-}
-
-function DashboardAvatar({ profile, user, size = 'md' }) {
-  const url = getAvatarUrl(profile, user);
-  const name = getDisplayName(profile, user);
-  const initials = name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
-
-  if (url) {
-    return <img src={url} alt="" className={`dash-avatar dash-avatar-${size}`} />;
-  }
-
-  return (
-    <span className={`dash-avatar dash-avatar-${size} dash-avatar-ph`} aria-hidden>
-      {initials}
-    </span>
-  );
+  return impersonation?.organizerName || profile?.providerInfo?.organizationName
+    || profile?.name || user?.providerInfo?.organizationName || user?.name || 'Organizer';
 }
 
 function formatAddress(addr) {
   if (!addr || typeof addr !== 'object') return null;
-  const parts = [
-    addr.street,
-    addr.addressLine2,
-    addr.city,
-    addr.state,
-    addr.zip || addr.zipCode,
-    addr.country,
-  ].filter(Boolean);
+  const parts = [addr.street, addr.addressLine2, addr.city, addr.state, addr.zip || addr.zipCode, addr.country].filter(Boolean);
   return parts.length ? parts.join(', ') : null;
 }
 
 function mergeProfile(apiProfile, clientUser) {
   if (!apiProfile && !clientUser) return null;
-  const providerInfo = {
-    ...(clientUser?.providerInfo || {}),
-    ...(apiProfile?.providerInfo || {}),
-  };
-
+  const providerInfo = { ...(clientUser?.providerInfo || {}), ...(apiProfile?.providerInfo || {}) };
   return {
     ...(clientUser || {}),
     ...(apiProfile || {}),
     providerInfo,
     profilePicture: apiProfile?.profilePicture || clientUser?.profilePicture || null,
-    avatar: providerInfo.partyLogo
-      || apiProfile?.profilePicture
-      || clientUser?.providerInfo?.partyLogo
-      || clientUser?.profilePicture
-      || null,
+    avatar: providerInfo.partyLogo || apiProfile?.profilePicture || clientUser?.providerInfo?.partyLogo || clientUser?.profilePicture || null,
   };
 }
 
-function TrendChart({ data, valueKey = 'revenue' }) {
-  const max = Math.max(...data.map((d) => d[valueKey]), 1);
-  return (
-    <div className="trend-chart">
-      {data.map((d) => (
-        <div key={d.date} className="trend-bar-wrap" title={`${d.date}: ${valueKey === 'revenue' ? fmt$(d.revenue) : d.tickets}`}>
-          <div
-            className="trend-bar"
-            style={{ height: `${Math.max(4, (d[valueKey] / max) * 100)}%` }}
-          />
-          <span className="trend-label">{d.date.slice(5)}</span>
-        </div>
-      ))}
-    </div>
-  );
+function guestInsights(tickets) {
+  const byEmail = {};
+  tickets.forEach((t) => {
+    const e = t.buyerEmail?.toLowerCase();
+    if (!e) return;
+    byEmail[e] = byEmail[e] || { name: t.buyerName, email: e, count: 0, events: new Set() };
+    byEmail[e].count += 1;
+    byEmail[e].events.add(t.eventId);
+  });
+  const buyers = Object.values(byEmail);
+  const repeat = buyers.filter((b) => b.count > 1).length;
+  const checkedIn = tickets.filter((t) => t.status === 'checked_in').length;
+  const checkInRate = tickets.length ? Math.round((checkedIn / tickets.length) * 100) : 0;
+  const topReturners = [...buyers].sort((a, b) => b.count - a.count).slice(0, 6);
+  return { buyers: buyers.length, repeat, checkInRate, checkedIn, topReturners };
 }
 
 export default function OrganizerDashboard() {
@@ -115,6 +74,7 @@ export default function OrganizerDashboard() {
   const [data, setData] = useState(null);
   const [period, setPeriod] = useState('month');
   const [tab, setTab] = useState('overview');
+  const [eventFilter, setEventFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionMsg, setActionMsg] = useState('');
@@ -134,17 +94,13 @@ export default function OrganizerDashboard() {
           return;
         }
         setUser(u);
-
         const imp = getImpersonation();
         const organizerId = imp?.organizerId || (u.role === 'provider' ? u.id : null);
-
         if (u.role === 'admin' && !organizerId) {
           router.replace('/admin');
           return;
         }
-
-        const dash = await loadData(organizerId);
-        setData(dash);
+        setData(await loadData(organizerId));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -156,8 +112,7 @@ export default function OrganizerDashboard() {
   const refresh = async () => {
     const imp = getImpersonation();
     const organizerId = imp?.organizerId || user?.id;
-    const dash = await loadData(organizerId);
-    setData(dash);
+    setData(await loadData(organizerId));
   };
 
   const updateEvent = async (eventId, updates) => {
@@ -165,11 +120,7 @@ export default function OrganizerDashboard() {
       const imp = getImpersonation();
       await apiFetch('/api/dashboard/events', {
         method: 'PATCH',
-        body: JSON.stringify({
-          eventId,
-          organizerId: imp?.organizerId || user.id,
-          ...updates,
-        }),
+        body: JSON.stringify({ eventId, organizerId: imp?.organizerId || user.id, ...updates }),
       });
       setActionMsg('Event updated');
       await refresh();
@@ -181,397 +132,349 @@ export default function OrganizerDashboard() {
 
   const events = data?.events || [];
   const stats = useMemo(() => computeDashboardStats(events, period), [events, period]);
-  const orgName = getDisplayName(data?.profile, user, impersonation);
+  const profile = mergeProfile(data?.profile, user);
+  const orgName = getDisplayName(profile, user, impersonation);
 
-  if (loading) return <p className="empty-note dash-loading">Loading dashboard...</p>;
-  if (error) return <p className="error-msg dash-loading">{error}</p>;
+  const filteredEvents = useMemo(() => {
+    if (eventFilter === 'live') return events.filter((e) => e.status === 'live');
+    if (eventFilter === 'upcoming') return events.filter((e) => e.status === 'upcoming');
+    if (eventFilter === 'past') return events.filter((e) => e.status === 'completed');
+    return events;
+  }, [events, eventFilter]);
+
+  const guestData = useMemo(() => guestInsights(data?.tickets || []), [data?.tickets]);
+  const trendRev = data?.trends?.revenue30d?.map((d) => d.revenue) || [];
+  const trendLabels = data?.trends?.revenue30d?.map((d) => d.date) || [];
+  const topTickets = [...events].sort((a, b) => (b.bookedSpots || 0) - (a.bookedSpots || 0)).slice(0, 6);
+  const topRev = [...events].sort((a, b) => (b.revenue || 0) - (a.revenue || 0)).slice(0, 6);
+  const maxT = Math.max(...topTickets.map((e) => e.bookedSpots || 0), 1);
+  const maxR = Math.max(...topRev.map((e) => e.revenue || 0), 1);
+
+  if (loading) return <div className="sdc-loading">Loading control center...</div>;
+  if (error) return <div className="sdc-loading sdc-error">{error}</div>;
   if (!data) return null;
 
   const { payouts, tickets, trends, guests } = data;
-  const profile = mergeProfile(data.profile, user);
-  const topTickets = [...events].sort((a, b) => (b.bookedSpots || 0) - (a.bookedSpots || 0)).slice(0, 5);
-  const maxT = Math.max(...topTickets.map((e) => e.bookedSpots || 0), 1);
-  const topRev = [...events].sort((a, b) => (b.revenue || 0) - (a.revenue || 0)).slice(0, 5);
-  const maxR = Math.max(...topRev.map((e) => e.revenue || 0), 1);
 
   return (
-    <div className="dash-page">
-      {impersonation && (
-        <div className="impersonate-banner">
-          <span>
-            Samba Team — managing as <strong>{impersonation.organizerName}</strong>
-          </span>
-          <button
-            type="button"
-            onClick={() => { clearImpersonation(); router.push('/admin'); }}
-          >
-            Exit organizer view
-          </button>
-        </div>
-      )}
-
-      <header className="dash-header">
-        <div className="dash-header-left">
-          <Link href="/" className="logo">Samba</Link>
-          <span className="dash-divider">/</span>
-          <span className="dash-title">Organizer Control</span>
-        </div>
-        <div className="dash-header-right">
-          <div className="dash-user">
-            <DashboardAvatar profile={profile} user={user} size="sm" />
-            <div className="dash-user-text">
-              <strong>{orgName}</strong>
-              <span>{impersonation?.organizerEmail || profile?.email || user?.email}</span>
-            </div>
-          </div>
-          {user?.role === 'admin' && (
-            <Link href="/admin" className="btn-ghost">Admin Panel</Link>
-          )}
-          <button
-            type="button"
-            className="btn-ghost"
-            onClick={async () => { await logout(); router.push('/login'); }}
-          >
-            Sign Out
-          </button>
-        </div>
-      </header>
-
-      <nav className="dash-tabs">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className={`dash-tab${tab === t.id ? ' active' : ''}`}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </nav>
-
-      {actionMsg && <div className="dash-toast">{actionMsg}</div>}
-
-      <main className="dash-main dash-main-wide">
+    <div className="sdc-page">
+      <DashboardLayout
+        variant="organizer"
+        title={TABS.find((t) => t.id === tab)?.label || 'Overview'}
+        subtitle={orgName}
+        tabs={TABS.map((t) => ({
+          ...t,
+          count: t.id === 'events' ? events.length : t.id === 'tickets' ? tickets.length : null,
+        }))}
+        activeTab={tab}
+        onTabChange={setTab}
+        avatarUrl={getAvatarUrl(profile, user)}
+        avatarName={orgName}
+        email={impersonation?.organizerEmail || profile?.email || user?.email}
+        balance={fmt$(payouts.balance)}
+        processing={fmt$(Math.max(0, payouts.netEarnings - payouts.balance - payouts.paidOut))}
+        headerStats={[
+          { label: 'Events', value: fmtN(events.length) },
+          { label: 'Tickets', value: fmtN(stats.totalTickets) },
+          { label: 'Live', value: fmtN(stats.live.length) },
+        ]}
+        impersonation={impersonation}
+        onExitImpersonation={() => { clearImpersonation(); router.push('/admin'); }}
+        adminLink={user?.role === 'admin' ? <Link href="/admin" className="sdc-sidebar-link">Admin panel</Link> : null}
+        onSignOut={async () => { await logout(); router.push('/login'); }}
+        toast={actionMsg}
+      >
         {tab === 'overview' && (
-          <>
-            <div className="revenue-card">
-              <div className="period-pills">
-                {PERIODS.map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    className={`period-pill ${period === p ? 'active' : ''}`}
-                    onClick={() => setPeriod(p)}
-                  >
-                    {p.charAt(0).toUpperCase() + p.slice(1)}
-                  </button>
-                ))}
+          <div className="sdc-stack">
+            <SdcCard className="sdc-revenue-hero">
+              <PeriodPills periods={PERIODS} active={period} onChange={setPeriod} />
+              <div className="sdc-revenue-row">
+                <div>
+                  <p className="sdc-revenue-amount">{fmt$(stats.revenuePeriod)}</p>
+                  <p className="sdc-revenue-label">
+                    {period === 'all' ? 'Total revenue' : `Revenue · This ${period}`}
+                  </p>
+                  <div className="sdc-hero-grid">
+                    <HeroStat label="Events" value={fmtN(events.length)} />
+                    <HeroStat label="Tickets sold" value={fmtN(stats.totalTickets)} />
+                    <HeroStat label="Fill rate" value={`${stats.fillRate}%`} />
+                    <HeroStat label="Net earnings" value={fmt$(payouts.netEarnings)} accent />
+                  </div>
+                </div>
+                <Sparkline data={trendRev.length > 1 ? trendRev : [0, stats.revenuePeriod * 0.4, stats.revenuePeriod]} width={320} height={72} />
               </div>
-              <div className="revenue-amount">{fmt$(stats.revenuePeriod)}</div>
-              <div className="revenue-label">
-                {period === 'all' ? 'Revenue · All time' : `Revenue · This ${period}`}
-              </div>
-              <div className="mini-stats">
-                <div className="mini-stat"><span className="mini-stat-value">{events.length}</span><span className="mini-stat-label">Events</span></div>
-                <div className="mini-stat"><span className="mini-stat-value">{stats.totalTickets}</span><span className="mini-stat-label">Tickets Sold</span></div>
-                <div className="mini-stat"><span className="mini-stat-value">{stats.fillRate}%</span><span className="mini-stat-label">Fill Rate</span></div>
-                <div className="mini-stat"><span className="mini-stat-value">{fmt$(payouts.balance)}</span><span className="mini-stat-label">Balance</span></div>
-              </div>
-            </div>
+            </SdcCard>
 
             {stats.live.length > 0 && (
-              <div className="live-alert">
-                <span className="live-dot" />
+              <div className="sdc-live-banner">
+                <span className="sdc-live-dot" />
                 <span>{stats.live.length} event{stats.live.length > 1 ? 's' : ''} live right now</span>
+                <button type="button" onClick={() => { setTab('events'); setEventFilter('live'); }}>View live</button>
               </div>
             )}
 
-            <div className="dash-grid">
-              <div className="dash-card">
-                <h3>Event Breakdown</h3>
-                <div className="breakdown-row"><span className="breakdown-dot live" /> Live <strong>{stats.live.length}</strong></div>
-                <div className="breakdown-row"><span className="breakdown-dot upcoming" /> Upcoming <strong>{stats.upcoming.length}</strong></div>
-                <div className="breakdown-row"><span className="breakdown-dot past" /> Past <strong>{stats.past.length}</strong></div>
-              </div>
-              <div className="dash-card">
-                <h3>Top Events · Tickets</h3>
-                {topTickets.length ? topTickets.map((e) => (
-                  <div key={e.id} className="bar-row">
-                    <span className="bar-label">{e.title}</span>
-                    <div className="bar-track"><div className="bar-fill" style={{ width: `${(e.bookedSpots / maxT) * 100}%` }} /></div>
-                    <span className="bar-value">{e.bookedSpots}</span>
-                  </div>
-                )) : <p className="empty-note">No events yet</p>}
-              </div>
-              <div className="dash-card">
-                <h3>Top Events · Revenue</h3>
-                {topRev.length ? topRev.map((e) => (
-                  <div key={e.id} className="bar-row">
-                    <span className="bar-label">{e.title}</span>
-                    <div className="bar-track"><div className="bar-fill" style={{ width: `${((e.revenue || 0) / maxR) * 100}%` }} /></div>
-                    <span className="bar-value">{fmt$(e.revenue || 0)}</span>
-                  </div>
-                )) : <p className="empty-note">No events yet</p>}
-              </div>
+            <div className="sdc-grid-2">
+              <SdcCard title="Revenue trend" meta="Last 30 days" wide>
+                <AreaChart data={trendRev} labels={trendLabels} />
+              </SdcCard>
+              <SdcCard title="Ticket sales" meta="Last 30 days" wide>
+                <AreaChart
+                  data={trends.revenue30d?.map((d) => d.tickets) || []}
+                  labels={trendLabels}
+                  color="#60a5fa"
+                  formatY={fmtN}
+                />
+              </SdcCard>
             </div>
-          </>
+
+            <div className="sdc-grid-3">
+              <SdcCard title="Event breakdown">
+                <DonutChart segments={[
+                  { label: 'Live', value: stats.live.length, color: '#4ade80' },
+                  { label: 'Upcoming', value: stats.upcoming.length, color: '#FF4B8C' },
+                  { label: 'Past', value: stats.past.length, color: '#a78bfa' },
+                ]} />
+              </SdcCard>
+              <SdcCard title="Top events · tickets">
+                {topTickets.length ? topTickets.map((e) => (
+                  <HBar key={e.id} label={e.title} value={e.bookedSpots || 0} maxValue={maxT} />
+                )) : <p className="sdc-empty">No events yet</p>}
+              </SdcCard>
+              <SdcCard title="Top events · revenue">
+                {topRev.length ? topRev.map((e) => (
+                  <HBar key={e.id} label={e.title} value={e.revenue || 0} maxValue={maxR} color="#a78bfa" display={fmt$(e.revenue || 0)} />
+                )) : <p className="sdc-empty">No events yet</p>}
+              </SdcCard>
+            </div>
+
+            <div className="sdc-grid-2">
+              <SdcCard title="Guest pulse">
+                <div className="sdc-hero-grid">
+                  <HeroStat label="Unique buyers" value={fmtN(guests.totalBuyers)} />
+                  <HeroStat label="Returning" value={fmtN(guestData.repeat)} />
+                  <HeroStat label="Check-in rate" value={`${guestData.checkInRate}%`} />
+                  <HeroStat label="Avg / event" value={events.length ? fmtN(Math.round(guests.totalTickets / events.length)) : '0'} />
+                </div>
+              </SdcCard>
+              <SdcCard title="Recent sales" meta={`${tickets.length} total`}>
+                {tickets.slice(0, 6).map((t) => (
+                  <div key={t.id} className="sdc-list-row">
+                    <div>
+                      <strong>{t.buyerName}</strong>
+                      <span>{t.eventTitle} · {t.ticketType}</span>
+                    </div>
+                    <span>{t.price === 0 ? 'Free' : fmt$(t.price)}</span>
+                  </div>
+                ))}
+                {!tickets.length && <p className="sdc-empty">No ticket sales yet</p>}
+              </SdcCard>
+            </div>
+          </div>
         )}
 
         {tab === 'events' && (
-          <div className="dash-card dash-table-card">
-            <div className="dash-card-head">
-              <h3>All Events — Full Control</h3>
-              <span className="dash-meta">{events.length} total</span>
+          <div className="sdc-stack">
+            <div className="sdc-filter-pills">
+              {['all', 'upcoming', 'live', 'past'].map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  className={`sdc-filter${eventFilter === f ? ' active' : ''}`}
+                  onClick={() => setEventFilter(f)}
+                >
+                  {f === 'past' ? 'Past' : f.charAt(0).toUpperCase() + f.slice(1)}
+                  {f === 'live' && stats.live.length > 0 && <span className="sdc-filter-dot" />}
+                </button>
+              ))}
             </div>
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Status</th>
-                    <th>Event</th>
-                    <th>Date</th>
-                    <th>Tickets</th>
-                    <th>Revenue</th>
-                    <th>Sales</th>
-                    <th>Explore</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {events.length ? events.map((e) => (
-                    <tr key={e.id}>
-                      <td>
-                        <select
-                          className="dash-select"
-                          value={e.status}
-                          onChange={(ev) => updateEvent(e.id, { status: ev.target.value })}
-                        >
-                          <option value="upcoming">upcoming</option>
-                          <option value="live">live</option>
-                          <option value="completed">completed</option>
-                        </select>
-                      </td>
-                      <td className="event-name">
-                        <Link href={`/events/${e.id}`}>{e.title}</Link>
-                        <span className="dash-sub">{e.venue}</span>
-                      </td>
-                      <td>{e.dateLabel}</td>
-                      <td>{e.bookedSpots} / {e.totalSpots || '∞'}</td>
-                      <td>{fmt$(e.revenue || 0)}</td>
-                      <td>
-                        <button
-                          type="button"
-                          className={`toggle-pill${e.ticketSalesOpen ? ' on' : ''}`}
-                          onClick={() => updateEvent(e.id, { ticket_sales_open: !e.ticketSalesOpen })}
-                        >
-                          {e.ticketSalesOpen ? 'Open' : 'Closed'}
-                        </button>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className={`toggle-pill${e.showOnExplore ? ' on' : ''}`}
-                          onClick={() => updateEvent(e.id, { show_on_explore: !e.showOnExplore })}
-                        >
-                          {e.showOnExplore ? 'Yes' : 'No'}
-                        </button>
-                      </td>
-                      <td>
-                        <Link href={`/events/${e.id}`} className="btn-ghost btn-sm">View</Link>
-                      </td>
-                    </tr>
-                  )) : (
-                    <tr><td colSpan={8} className="empty-note">No events yet</td></tr>
-                  )}
-                </tbody>
-              </table>
+            <div className="sdc-event-grid">
+              {filteredEvents.length ? filteredEvents.map((e) => (
+                <EventCard
+                  key={e.id}
+                  event={e}
+                  onToggleSales={() => updateEvent(e.id, { ticket_sales_open: !e.ticketSalesOpen })}
+                  onToggleExplore={() => updateEvent(e.id, { show_on_explore: !e.showOnExplore })}
+                />
+              )) : <p className="sdc-empty">No events in this category</p>}
             </div>
+            <SdcCard title="Event manager" meta="Full table view">
+              <div className="sdc-table-wrap">
+                <table className="sdc-table">
+                  <thead>
+                    <tr><th>Status</th><th>Event</th><th>Date</th><th>Sold</th><th>Revenue</th><th>Sales</th><th>Explore</th></tr>
+                  </thead>
+                  <tbody>
+                    {events.map((e) => (
+                      <tr key={e.id}>
+                        <td>
+                          <select className="sdc-select" value={e.status} onChange={(ev) => updateEvent(e.id, { status: ev.target.value })}>
+                            <option value="upcoming">upcoming</option>
+                            <option value="live">live</option>
+                            <option value="completed">completed</option>
+                          </select>
+                        </td>
+                        <td><Link href={`/events/${e.id}`}>{e.title}</Link><span className="sdc-sub">{e.venue}</span></td>
+                        <td>{e.dateLabel}</td>
+                        <td>{e.bookedSpots} / {e.totalSpots || '∞'}</td>
+                        <td>{fmt$(e.revenue || 0)}</td>
+                        <td><StatusBadge status={e.ticketSalesOpen ? 'live' : 'past'} /></td>
+                        <td><StatusBadge status={e.showOnExplore ? 'live' : 'past'} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </SdcCard>
           </div>
         )}
 
         {tab === 'payouts' && (
-          <div className="dash-grid">
-            <div className="dash-card payout-hero">
-              <h3>Available Balance</h3>
-              <div className="revenue-amount">{fmt$(payouts.balance)}</div>
-              <p className="dash-meta">Ready for payout after platform fees</p>
-              <button type="button" className="btn-primary" disabled={payouts.balance <= 0}>
-                Request Payout
-              </button>
-            </div>
-            <div className="dash-card">
-              <h3>Earnings Breakdown</h3>
-              <div className="payout-row"><span>Gross Revenue</span><strong>{fmt$(payouts.grossRevenue)}</strong></div>
-              <div className="payout-row"><span>Platform Fee ({payouts.platformFeeRate * 100}%)</span><strong>-{fmt$(payouts.platformFees)}</strong></div>
-              <div className="payout-row"><span>Net Earnings</span><strong>{fmt$(payouts.netEarnings)}</strong></div>
-              <div className="payout-row"><span>Total Paid Out</span><strong>{fmt$(payouts.paidOut)}</strong></div>
-              <div className="payout-row total"><span>Balance</span><strong>{fmt$(payouts.balance)}</strong></div>
-            </div>
-            <div className="dash-card">
-              <h3>Payout Status</h3>
-              <div className="payout-row">
-                <span>Verification</span>
-                <span className={`status-badge status-${payouts.verificationStatus === 'verified' ? 'live' : 'upcoming'}`}>
-                  {payouts.verificationStatus}
-                </span>
+          <div className="sdc-grid-2">
+            <SdcCard title="Available balance" className="sdc-payout-hero">
+              <p className="sdc-revenue-amount">{fmt$(payouts.balance)}</p>
+              <p className="sdc-revenue-label">Ready after platform fees</p>
+              <button type="button" className="sdc-withdraw-btn" disabled={payouts.balance <= 0}>Request payout in app</button>
+            </SdcCard>
+            <SdcCard title="Earnings breakdown">
+              <div className="sdc-kv"><span>Gross revenue</span><strong>{fmt$(payouts.grossRevenue)}</strong></div>
+              <div className="sdc-kv"><span>Platform fee ({payouts.platformFeeRate * 100}%)</span><strong>-{fmt$(payouts.platformFees)}</strong></div>
+              <div className="sdc-kv"><span>Net earnings</span><strong>{fmt$(payouts.netEarnings)}</strong></div>
+              <div className="sdc-kv"><span>Paid out</span><strong>{fmt$(payouts.paidOut)}</strong></div>
+              <div className="sdc-kv total"><span>Balance</span><strong>{fmt$(payouts.balance)}</strong></div>
+            </SdcCard>
+            <SdcCard title="Payout status">
+              <div className="sdc-kv"><span>Verification</span><StatusBadge status={payouts.verificationStatus} /></div>
+              <div className="sdc-kv"><span>Stripe Connect</span><strong>{payouts.stripeConnected ? 'Connected' : 'Not connected'}</strong></div>
+              <p className="sdc-hint">Connect Stripe in the Samba app to enable live payouts.</p>
+            </SdcCard>
+            <SdcCard title="Fee structure">
+              <div className="sdc-fee-split">
+                <div><span>You keep</span><strong>90%</strong></div>
+                <div><span>Platform</span><strong>10%</strong></div>
               </div>
-              <div className="payout-row">
-                <span>Stripe Connect</span>
-                <span>{payouts.stripeConnected ? 'Connected' : 'Not connected'}</span>
-              </div>
-              <p className="dash-hint">Connect Stripe in the Samba app to enable live payouts.</p>
-            </div>
+              <SectionLabel>All ticket sales · automatic deduction</SectionLabel>
+            </SdcCard>
           </div>
         )}
 
         {tab === 'tickets' && (
-          <div className="dash-card dash-table-card">
-            <div className="dash-card-head">
-              <h3>All Ticket Sales</h3>
-              <span className="dash-meta">{tickets.length} tickets</span>
-            </div>
-            <div className="table-wrap">
-              <table>
+          <SdcCard title="All ticket sales" meta={`${tickets.length} tickets`}>
+            <div className="sdc-table-wrap">
+              <table className="sdc-table">
                 <thead>
                   <tr><th>Event</th><th>Type</th><th>Buyer</th><th>Email</th><th>Price</th><th>Date</th><th>Status</th></tr>
                 </thead>
                 <tbody>
                   {tickets.length ? tickets.map((t) => (
                     <tr key={t.id}>
-                      <td className="event-name">{t.eventTitle}</td>
+                      <td>{t.eventTitle}</td>
                       <td>{t.ticketType}</td>
                       <td>{t.buyerName}</td>
                       <td>{t.buyerEmail}</td>
                       <td>{t.price === 0 ? 'Free' : fmt$(t.price)}</td>
                       <td>{new Date(t.purchaseDate).toLocaleDateString()}</td>
-                      <td><span className={`status-badge status-${t.status === 'checked_in' ? 'live' : 'upcoming'}`}>{t.status}</span></td>
+                      <td><StatusBadge status={t.status} /></td>
                     </tr>
                   )) : (
-                    <tr><td colSpan={7} className="empty-note">No ticket sales yet</td></tr>
+                    <tr><td colSpan={7} className="sdc-empty">No ticket sales yet</td></tr>
                   )}
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
-
-        {tab === 'trends' && (
-          <div className="dash-grid">
-            <div className="dash-card dash-card-wide">
-              <h3>Revenue — Last 30 Days</h3>
-              <TrendChart data={trends.revenue30d} valueKey="revenue" />
-            </div>
-            <div className="dash-card dash-card-wide">
-              <h3>Tickets Sold — Last 30 Days</h3>
-              <TrendChart data={trends.revenue30d} valueKey="tickets" />
-            </div>
-            <div className="dash-card">
-              <h3>7-Day Summary</h3>
-              {trends.revenue7d.map((d) => (
-                <div key={d.date} className="payout-row">
-                  <span>{d.date}</span>
-                  <span>{d.tickets} tickets · {fmt$(d.revenue)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          </SdcCard>
         )}
 
         {tab === 'guests' && (
-          <div className="dash-grid">
-            <div className="dash-card">
-              <h3>Guest Overview</h3>
-              <div className="mini-stats mini-stats-col">
-                <div className="mini-stat"><span className="mini-stat-value">{guests.totalBuyers}</span><span className="mini-stat-label">Unique Buyers</span></div>
-                <div className="mini-stat"><span className="mini-stat-value">{guests.totalTickets}</span><span className="mini-stat-label">Total Tickets</span></div>
-              </div>
+          <div className="sdc-stack">
+            <div className="sdc-hero-grid sdc-hero-grid-4">
+              <HeroStat label="Unique buyers" value={fmtN(guests.totalBuyers)} />
+              <HeroStat label="Total tickets" value={fmtN(guests.totalTickets)} />
+              <HeroStat label="Returning guests" value={fmtN(guestData.repeat)} />
+              <HeroStat label="Check-in rate" value={`${guestData.checkInRate}%`} accent />
             </div>
-            <div className="dash-card">
-              <h3>Ticket Type Breakdown</h3>
-              {Object.keys(guests.ticketTypeBreakdown).length ? Object.entries(guests.ticketTypeBreakdown).map(([type, count]) => (
-                <div key={type} className="payout-row"><span>{type}</span><strong>{count}</strong></div>
-              )) : <p className="empty-note">No data yet</p>}
+            <div className="sdc-grid-2">
+              <SdcCard title="Ticket types">
+                {Object.keys(guests.ticketTypeBreakdown).length ? Object.entries(guests.ticketTypeBreakdown).map(([type, count]) => (
+                  <HBar key={type} label={type} value={count} maxValue={guests.totalTickets || 1} color="#60a5fa" />
+                )) : <p className="sdc-empty">No data yet</p>}
+              </SdcCard>
+              <SdcCard title="Top returners">
+                {guestData.topReturners.length ? guestData.topReturners.map((b) => (
+                  <div key={b.email} className="sdc-list-row">
+                    <div><strong>{b.name}</strong><span>{b.email}</span></div>
+                    <span>{b.count} tickets · {b.events.size} events</span>
+                  </div>
+                )) : <p className="sdc-empty">No repeat buyers yet</p>}
+              </SdcCard>
             </div>
-            <div className="dash-card dash-card-wide">
-              <h3>Recent Buyers</h3>
-              <div className="table-wrap">
-                <table>
-                  <thead><tr><th>Name</th><th>Email</th><th>Event</th><th>Ticket</th></tr></thead>
+            <SdcCard title="All buyers" meta="Recent 50">
+              <div className="sdc-table-wrap">
+                <table className="sdc-table">
+                  <thead><tr><th>Name</th><th>Email</th><th>Event</th><th>Ticket</th><th>Price</th></tr></thead>
                   <tbody>
-                    {tickets.slice(0, 20).map((t) => (
+                    {tickets.slice(0, 50).map((t) => (
                       <tr key={t.id}>
                         <td>{t.buyerName}</td>
                         <td>{t.buyerEmail}</td>
                         <td>{t.eventTitle}</td>
                         <td>{t.ticketType}</td>
+                        <td>{t.price === 0 ? 'Free' : fmt$(t.price)}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            </div>
+            </SdcCard>
           </div>
         )}
 
         {tab === 'settings' && (
-          <div className="dash-grid">
-            <div className="dash-card dash-card-wide settings-profile-card">
-              <div className="settings-profile-head">
-                <DashboardAvatar profile={profile} user={user} size="lg" />
-                <div className="settings-profile-meta">
-                  <h3>{profile?.providerInfo?.organizationName || profile?.name || orgName}</h3>
-                  {profile?.providerInfo?.description && (
-                    <p className="settings-bio">{profile.providerInfo.description}</p>
-                  )}
-                  <div className="settings-profile-tags">
-                    <span className={`status-badge status-${payouts.verificationStatus === 'verified' ? 'live' : 'upcoming'}`}>
-                      {payouts.verificationStatus}
-                    </span>
-                    {profile?.role && <span className="settings-tag">{profile.role}</span>}
+          <div className="sdc-stack">
+            <SdcCard className="sdc-profile-hero">
+              <div className="sdc-profile-head">
+                <DashboardAvatar url={getAvatarUrl(profile, user)} name={orgName} size="lg" />
+                <div>
+                  <h2>{profile?.providerInfo?.organizationName || profile?.name || orgName}</h2>
+                  {profile?.providerInfo?.description && <p>{profile.providerInfo.description}</p>}
+                  <div className="sdc-profile-tags">
+                    <StatusBadge status={payouts.verificationStatus} />
+                    <span className="sdc-tag">{profile?.role}</span>
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="dash-card">
-              <h3>Organization</h3>
-              <div className="settings-field"><label>Organization</label><span>{profile?.providerInfo?.organizationName || '—'}</span></div>
-              <div className="settings-field"><label>Contact Email</label><span>{profile?.providerInfo?.partyEmail || profile?.email || '—'}</span></div>
-              <div className="settings-field"><label>Phone</label><span>{profile?.providerInfo?.partyPhone || profile?.phoneNumber || '—'}</span></div>
-              <div className="settings-field"><label>Website</label><span>{profile?.providerInfo?.website || '—'}</span></div>
-              <div className="settings-field"><label>Business Address</label><span>{formatAddress(profile?.providerInfo?.businessAddress) || '—'}</span></div>
-            </div>
-
-            <div className="dash-card">
-              <h3>Personal</h3>
-              <div className="settings-field"><label>Name</label><span>{profile?.name || '—'}</span></div>
-              <div className="settings-field"><label>Account Email</label><span>{profile?.email || '—'}</span></div>
-              <div className="settings-field"><label>Phone</label><span>{profile?.phoneNumber || '—'}</span></div>
-              <div className="settings-field"><label>Date of Birth</label><span>{profile?.dateOfBirth || '—'}</span></div>
-              <div className="settings-field"><label>Address</label><span>{formatAddress(profile?.address) || '—'}</span></div>
-            </div>
-
-            <div className="dash-card">
-              <h3>Verification & Payouts</h3>
-              <div className="settings-field"><label>Status</label><span className={`status-badge status-${payouts.verificationStatus === 'verified' ? 'live' : 'upcoming'}`}>{payouts.verificationStatus}</span></div>
-              <div className="settings-field"><label>Stripe Connect</label><span>{payouts.stripeConnected ? 'Connected' : 'Not connected'}</span></div>
-              <div className="settings-field"><label>Tax Info</label><span>{profile?.providerInfo?.taxInfo ? 'On file' : 'Not submitted'}</span></div>
-              <div className="settings-field"><label>Bank Account</label><span>{profile?.providerInfo?.bankAccountInfo ? 'On file' : 'Not submitted'}</span></div>
-              <div className="settings-field"><label>ID Verification</label><span>{profile?.providerInfo?.identityVerification ? 'Submitted' : 'Not submitted'}</span></div>
-            </div>
-
-            <div className="dash-card">
-              <h3>Account</h3>
-              <div className="settings-field"><label>User ID</label><span className="mono">{profile?.id || user?.id}</span></div>
-              <div className="settings-field"><label>Role</label><span>{profile?.role || user?.role}</span></div>
-              <div className="settings-field"><label>Mode</label><span>{profile?.currentMode || '—'}</span></div>
-              <div className="settings-field"><label>Member Since</label><span>{profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : '—'}</span></div>
-              <div className="settings-field"><label>Last Updated</label><span>{profile?.updatedAt ? new Date(profile.updatedAt).toLocaleDateString() : '—'}</span></div>
+            </SdcCard>
+            <div className="sdc-grid-2">
+              <SdcCard title="Organization">
+                <div className="sdc-kv"><span>Organization</span><strong>{profile?.providerInfo?.organizationName || '—'}</strong></div>
+                <div className="sdc-kv"><span>Contact email</span><strong>{profile?.providerInfo?.partyEmail || profile?.email || '—'}</strong></div>
+                <div className="sdc-kv"><span>Phone</span><strong>{profile?.providerInfo?.partyPhone || profile?.phoneNumber || '—'}</strong></div>
+                <div className="sdc-kv"><span>Website</span><strong>{profile?.providerInfo?.website || '—'}</strong></div>
+                <div className="sdc-kv"><span>Business address</span><strong>{formatAddress(profile?.providerInfo?.businessAddress) || '—'}</strong></div>
+              </SdcCard>
+              <SdcCard title="Personal">
+                <div className="sdc-kv"><span>Name</span><strong>{profile?.name || '—'}</strong></div>
+                <div className="sdc-kv"><span>Account email</span><strong>{profile?.email || '—'}</strong></div>
+                <div className="sdc-kv"><span>Phone</span><strong>{profile?.phoneNumber || '—'}</strong></div>
+                <div className="sdc-kv"><span>Date of birth</span><strong>{profile?.dateOfBirth || '—'}</strong></div>
+                <div className="sdc-kv"><span>Address</span><strong>{formatAddress(profile?.address) || '—'}</strong></div>
+              </SdcCard>
+              <SdcCard title="Verification">
+                <div className="sdc-kv"><span>Status</span><StatusBadge status={payouts.verificationStatus} /></div>
+                <div className="sdc-kv"><span>Stripe</span><strong>{payouts.stripeConnected ? 'Connected' : 'Not connected'}</strong></div>
+                <div className="sdc-kv"><span>Tax info</span><strong>{profile?.providerInfo?.taxInfo ? 'On file' : 'Not submitted'}</strong></div>
+                <div className="sdc-kv"><span>Bank account</span><strong>{profile?.providerInfo?.bankAccountInfo ? 'On file' : 'Not submitted'}</strong></div>
+                <div className="sdc-kv"><span>ID verification</span><strong>{profile?.providerInfo?.identityVerification ? 'Submitted' : 'Not submitted'}</strong></div>
+              </SdcCard>
+              <SdcCard title="Account">
+                <div className="sdc-kv"><span>User ID</span><strong className="mono">{profile?.id}</strong></div>
+                <div className="sdc-kv"><span>Role</span><strong>{profile?.role}</strong></div>
+                <div className="sdc-kv"><span>Member since</span><strong>{profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : '—'}</strong></div>
+                <div className="sdc-kv"><span>Last updated</span><strong>{profile?.updatedAt ? new Date(profile.updatedAt).toLocaleDateString() : '—'}</strong></div>
+              </SdcCard>
             </div>
           </div>
         )}
-      </main>
+      </DashboardLayout>
     </div>
   );
 }
