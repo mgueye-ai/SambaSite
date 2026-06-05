@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentUser, logout } from '../lib/auth';
 import { apiFetch } from '../lib/api-client';
@@ -9,6 +9,7 @@ import { getImpersonation, clearImpersonation } from '../lib/impersonation';
 import { computeDashboardStats } from '../lib/events';
 import DashboardLayout from './dashboard/DashboardLayout';
 import CreateEventForm, { CreateEventSuccess } from './CreateEventForm';
+import { getEventManagePath } from '../lib/event-manage';
 import {
   AreaChart, DashboardAvatar, DonutChart, EventCard, fmt$, fmtN, HBar, HeroStat,
   PeriodPills, SectionLabel, Sparkline, SdcCard, StatusBadge,
@@ -72,6 +73,7 @@ function guestInsights(tickets) {
 
 export default function OrganizerDashboard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState(null);
   const [data, setData] = useState(null);
   const [period, setPeriod] = useState('month');
@@ -88,6 +90,13 @@ export default function OrganizerDashboard() {
     const q = organizerId ? `?organizerId=${organizerId}` : '';
     return apiFetch(`/api/dashboard${q}`);
   }, []);
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && TABS.some((t) => t.id === tabParam)) {
+      setTab(tabParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     (async () => {
@@ -353,7 +362,7 @@ export default function OrganizerDashboard() {
                             <option value="completed">completed</option>
                           </select>
                         </td>
-                        <td><Link href={`/events/${e.id}`}>{e.title}</Link><span className="sdc-sub">{e.venue}</span></td>
+                        <td><Link href={getEventManagePath(e)}>{e.title}</Link><span className="sdc-sub">{e.venue}</span></td>
                         <td>{e.dateLabel}</td>
                         <td>{e.bookedSpots} / {e.totalSpots || '∞'}</td>
                         <td>{fmt$(e.revenue || 0)}</td>

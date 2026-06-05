@@ -32,7 +32,44 @@ function combineDateTime(dateStr, timeStr) {
   return new Date(`${dateStr}T${timeStr}:00`).toISOString();
 }
 
-export default function CreateEventForm({ profile, user, organizerId, onSuccess, onCancel }) {
+function mapEventToFormState(initialEvent) {
+  const addr = initialEvent?.address || {};
+  const cover = initialEvent?.coverImage || initialEvent?.flyers?.[0] || '';
+  const mappedTickets = (initialEvent?.tickets?.length ? initialEvent.tickets : [EMPTY_TICKET()]).map((t) => ({
+    type: t.name || t.type || '',
+    price: t.isFree ? '' : String(t.price ?? ''),
+    isFree: !!t.isFree,
+    quantity: t.isUnlimited ? '100' : String(t.quantity ?? ''),
+    isUnlimited: !!t.isUnlimited,
+    instructions: t.instructions || '',
+    includes: t.includes?.length ? t.includes : [''],
+  }));
+
+  return {
+    title: initialEvent?.title || '',
+    date: initialEvent?.date ? toLocalDateValue(initialEvent.date) : toLocalDateValue(new Date()),
+    startTime: initialEvent?.startTime ? toLocalTimeValue(initialEvent.startTime) : toLocalTimeValue(new Date()),
+    endTime: initialEvent?.endTime ? toLocalTimeValue(initialEvent.endTime) : '',
+    hasEndTime: !!initialEvent?.hasEndTime,
+    venue: initialEvent?.venue || '',
+    street: addr.street || '',
+    city: addr.city || '',
+    state: addr.state || '',
+    zipCode: addr.zipCode || addr.zip || '',
+    description: initialEvent?.description || '',
+    showOnExplore: initialEvent?.showOnExplore !== false,
+    coverPreview: cover,
+    coverUrl: cover,
+    tickets: mappedTickets,
+  };
+}
+
+export default function CreateEventForm({
+  profile, user, organizerId, onSuccess, onCancel, mode = 'create', initialEvent,
+}) {
+  const isEdit = mode === 'edit' && initialEvent?.id;
+  const initial = useMemo(() => (isEdit ? mapEventToFormState(initialEvent) : null), [isEdit, initialEvent]);
+
   const now = useMemo(() => new Date(), []);
   const defaultEnd = useMemo(() => {
     const d = new Date(now);
@@ -40,24 +77,24 @@ export default function CreateEventForm({ profile, user, organizerId, onSuccess,
     return d;
   }, [now]);
 
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState(toLocalDateValue(now));
-  const [startTime, setStartTime] = useState(toLocalTimeValue(now));
-  const [endTime, setEndTime] = useState(toLocalTimeValue(defaultEnd));
-  const [hasEndTime, setHasEndTime] = useState(false);
-  const [venue, setVenue] = useState('');
-  const [street, setStreet] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [zipCode, setZipCode] = useState('');
-  const [description, setDescription] = useState('');
-  const [showOnExplore, setShowOnExplore] = useState(true);
-  const [coverPreview, setCoverPreview] = useState('');
-  const [coverUrl, setCoverUrl] = useState('');
+  const [title, setTitle] = useState(initial?.title || '');
+  const [date, setDate] = useState(initial?.date || toLocalDateValue(now));
+  const [startTime, setStartTime] = useState(initial?.startTime || toLocalTimeValue(now));
+  const [endTime, setEndTime] = useState(initial?.endTime || toLocalTimeValue(defaultEnd));
+  const [hasEndTime, setHasEndTime] = useState(initial?.hasEndTime || false);
+  const [venue, setVenue] = useState(initial?.venue || '');
+  const [street, setStreet] = useState(initial?.street || '');
+  const [city, setCity] = useState(initial?.city || '');
+  const [state, setState] = useState(initial?.state || '');
+  const [zipCode, setZipCode] = useState(initial?.zipCode || '');
+  const [description, setDescription] = useState(initial?.description || '');
+  const [showOnExplore, setShowOnExplore] = useState(initial?.showOnExplore ?? true);
+  const [coverPreview, setCoverPreview] = useState(initial?.coverPreview || '');
+  const [coverUrl, setCoverUrl] = useState(initial?.coverUrl || '');
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [tickets, setTickets] = useState([EMPTY_TICKET()]);
+  const [tickets, setTickets] = useState(initial?.tickets || [EMPTY_TICKET()]);
 
   const orgName = profile?.providerInfo?.organizationName || profile?.name || user?.name || 'Organizer';
   const avatarUrl = profile?.avatar || profile?.providerInfo?.partyLogo || user?.profilePicture;
@@ -124,12 +161,19 @@ export default function CreateEventForm({ profile, user, organizerId, onSuccess,
         tickets,
       };
 
-      const { event } = await apiFetch('/api/dashboard/events', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-
-      onSuccess?.(event);
+      if (isEdit) {
+        const { event } = await apiFetch(`/api/dashboard/events/${initialEvent.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ organizerId, fullEdit: payload }),
+        });
+        onSuccess?.(event);
+      } else {
+        const { event } = await apiFetch('/api/dashboard/events', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        onSuccess?.(event);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -369,7 +413,7 @@ export default function CreateEventForm({ profile, user, organizerId, onSuccess,
           <div className="sdc-create-actions">
             <button type="button" className="sdc-create-cancel" onClick={onCancel}>Cancel</button>
             <button type="submit" className="sdc-create-submit" disabled={submitting || uploading}>
-              {submitting ? 'Creating...' : 'Create event'}
+              {submitting ? (isEdit ? 'Saving...' : 'Creating...') : (isEdit ? 'Save changes' : 'Create event')}
             </button>
           </div>
         </div>

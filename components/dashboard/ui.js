@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { getEventManagePath } from '../../lib/event-manage';
 
 export const fmt$ = (n) => {
   if (n >= 1000000) return `$${(n / 1000000).toFixed(1)}M`;
@@ -149,6 +150,36 @@ export function DonutChart({ segments, size = 140 }) {
   );
 }
 
+export function BarChart({ data, labels, width = 560, height = 120, color = '#666666' }) {
+  if (!data?.length) return <p className="sdc-empty-chart">Not enough data yet</p>;
+  const max = Math.max(...data, 1);
+  const pad = { l: 12, r: 12, t: 8, b: 24 };
+  const cw = width - pad.l - pad.r;
+  const ch = height - pad.t - pad.b;
+  const slotW = cw / data.length;
+  const barW = Math.max(6, slotW - 6);
+
+  return (
+    <svg width="100%" viewBox={`0 0 ${width} ${height}`} className="sdc-area-chart" preserveAspectRatio="none" aria-hidden>
+      {data.map((v, i) => {
+        const barH = (v / max) * ch;
+        const x = pad.l + i * slotW + (slotW - barW) / 2;
+        const y = pad.t + ch - barH;
+        return (
+          <g key={i}>
+            <rect x={x} y={y} width={barW} height={barH} rx={3} fill={color} opacity={i === data.length - 1 ? 1 : 0.65} />
+            {labels?.[i] && (
+              <text x={x + barW / 2} y={height - 6} fontSize="9" fill="rgba(255,255,255,0.35)" textAnchor="middle">
+                {labels[i]}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 export function HBar({ label, value, maxValue, color = '#666666', display }) {
   const pct = maxValue > 0 ? (value / maxValue) * 100 : 0;
   return (
@@ -224,28 +255,41 @@ export function DashboardAvatar({ url, name, size = 'md' }) {
 
 export function EventCard({ event, onToggleSales, onToggleExplore }) {
   const cover = event.coverImage;
+  const managePath = getEventManagePath(event);
+  const publicPath = `/events/${event.id}`;
+
   return (
     <article className={`sdc-event-card sdc-event-${event.status}`}>
-      <div className="sdc-event-cover" style={cover ? { backgroundImage: `url(${cover})` } : undefined}>
-        {!cover && <span className="sdc-event-cover-ph">{event.title?.[0]}</span>}
-        <StatusBadge status={event.status} />
-      </div>
-      <div className="sdc-event-body">
-        <h4><Link href={`/events/${event.id}`}>{event.title}</Link></h4>
-        <p className="sdc-event-meta">{event.dateLabel} · {event.venue || 'Venue TBD'}</p>
-        <div className="sdc-event-stats">
-          <span>{event.bookedSpots || 0} sold</span>
-          <span>{fmt$(event.revenue || 0)}</span>
+      <Link href={managePath} className="sdc-event-link">
+        <div className="sdc-event-cover" style={cover ? { backgroundImage: `url(${cover})` } : undefined}>
+          {!cover && <span className="sdc-event-cover-ph">{event.title?.[0]}</span>}
+          <StatusBadge status={event.status} />
         </div>
-        <div className="sdc-event-actions">
-          <button type="button" className={`sdc-toggle${event.ticketSalesOpen ? ' on' : ''}`} onClick={() => onToggleSales?.(event)}>
-            Sales {event.ticketSalesOpen ? 'On' : 'Off'}
-          </button>
-          <button type="button" className={`sdc-toggle${event.showOnExplore ? ' on' : ''}`} onClick={() => onToggleExplore?.(event)}>
-            Explore {event.showOnExplore ? 'On' : 'Off'}
-          </button>
-          <Link href={`/events/${event.id}`} className="sdc-link-btn">View</Link>
+        <div className="sdc-event-body">
+          <h4>{event.title}</h4>
+          <p className="sdc-event-meta">{event.dateLabel} · {event.venue || 'Venue TBD'}</p>
+          <div className="sdc-event-stats">
+            <span>{event.bookedSpots || 0} sold</span>
+            <span>{fmt$(event.revenue || 0)}</span>
+          </div>
         </div>
+      </Link>
+      <div className="sdc-event-actions">
+        <button
+          type="button"
+          className={`sdc-toggle${event.ticketSalesOpen ? ' on' : ''}`}
+          onClick={() => onToggleSales?.(event)}
+        >
+          Sales {event.ticketSalesOpen ? 'On' : 'Off'}
+        </button>
+        <button
+          type="button"
+          className={`sdc-toggle${event.showOnExplore ? ' on' : ''}`}
+          onClick={() => onToggleExplore?.(event)}
+        >
+          Explore {event.showOnExplore ? 'On' : 'Off'}
+        </button>
+        <Link href={publicPath} className="sdc-link-btn" onClick={(e) => e.stopPropagation()}>Public page</Link>
       </div>
     </article>
   );

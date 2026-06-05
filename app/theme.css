@@ -397,3 +397,216 @@ body {
 .admin-stat-card.accent .admin-stat-value {
   color: var(--text);
 }
+
+/* ── Event manage screens (app parity) ── */
+.evm-page {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.evm-loading,
+.evm-error {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--bg);
+  color: var(--text-secondary);
+}
+
+.evm-lip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-subtle);
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+}
+
+.evm-back {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.evm-back:hover {
+  color: var(--text);
+}
+
+.evm-lip-meta,
+.evm-lip-timer {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.evm-lip-timer {
+  color: var(--text);
+  font-size: 18px;
+}
+
+.evm-start-btn,
+.evm-end-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.evm-end-btn {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+.evm-body {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 32px 48px;
+}
+
+.evm-edit-body {
+  max-width: 1400px;
+}
+
+.evm-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 10px;
+}
+
+.evm-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.evm-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+.evm-badge {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.evm-badge-live {
+  color: var(--success);
+}
+
+.evm-badge-completed {
+  color: var(--text-secondary);
+}
+
+.evm-badge-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.evm-venue {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.evm-ticket-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.evm-ticket-card {
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+}
+
+.evm-ticket-card strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.evm-ticket-card span {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.evm-ticket-price {
+  display: block;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+.evm-code-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  font-variant-numeric: tabular-nums;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.evm-checkin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.evm-checkin-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  font-size: 13px;
+}
+
+.evm-checkin-row span {
+  color: var(--text-secondary);
+}
+
+.sdc-event-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.sdc-event-link:hover h4 {
+  color: var(--text);
+}
+
+.sdc-event-card .sdc-event-actions {
+  padding: 0 16px 16px;
+}
