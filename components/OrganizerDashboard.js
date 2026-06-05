@@ -138,7 +138,7 @@ export default function OrganizerDashboard() {
   const filteredEvents = useMemo(() => {
     if (eventFilter === 'live') return events.filter((e) => e.status === 'live');
     if (eventFilter === 'upcoming') return events.filter((e) => e.status === 'upcoming');
-    if (eventFilter === 'past') return events.filter((e) => e.status === 'completed');
+    if (eventFilter === 'past') return events.filter((e) => e.status === 'completed' || e.status === 'past');
     return events;
   }, [events, eventFilter]);
 
@@ -287,6 +287,12 @@ export default function OrganizerDashboard() {
                 </button>
               ))}
             </div>
+            {events.length === 0 && (
+              <div className="sdc-empty-card">
+                <h3>No events in your dashboard yet</h3>
+                <p>Events are created in the Samba app. Open the app while signed in as an organizer — your events (including past ones) will sync to the web dashboard automatically.</p>
+              </div>
+            )}
             <div className="sdc-event-grid">
               {filteredEvents.length ? filteredEvents.map((e) => (
                 <EventCard
@@ -295,7 +301,7 @@ export default function OrganizerDashboard() {
                   onToggleSales={() => updateEvent(e.id, { ticket_sales_open: !e.ticketSalesOpen })}
                   onToggleExplore={() => updateEvent(e.id, { show_on_explore: !e.showOnExplore })}
                 />
-              )) : <p className="sdc-empty">No events in this category</p>}
+              )) : events.length > 0 ? <p className="sdc-empty">No events in this category</p> : null}
             </div>
             <SdcCard title="Event manager" meta="Full table view">
               <div className="sdc-table-wrap">

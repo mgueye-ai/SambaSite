@@ -3475,6 +3475,27 @@ a.ed-info-block:hover .ed-map-hint {
   padding: 20px 0;
 }
 
+.sdc-empty-card {
+  padding: 28px;
+  border-radius: 20px;
+  background: rgba(255, 75, 140, 0.08);
+  border: 1px solid rgba(255, 75, 140, 0.2);
+  margin-bottom: 20px;
+}
+
+.sdc-empty-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.sdc-empty-card p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.5;
+  max-width: 640px;
+}
+
 .sdc-hint {
   font-size: 13px;
   color: rgba(255, 255, 255, 0.35);
