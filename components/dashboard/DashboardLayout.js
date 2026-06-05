@@ -34,7 +34,10 @@ export default function DashboardLayout({
 
       <aside className="sdc-sidebar">
         <div className="sdc-sidebar-top">
-          <Link href="/" className="sdc-logo">Samba</Link>
+          <Link href="/" className="sdc-logo">
+            <img src="/icon.png" alt="" className="sdc-logo-icon" width={32} height={32} />
+            <span>Samba</span>
+          </Link>
           <span className="sdc-sidebar-badge">{variant === 'admin' ? 'Team Admin' : 'Organizer'}</span>
         </div>
 
