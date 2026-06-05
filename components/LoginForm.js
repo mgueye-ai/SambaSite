@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { checkEmail, login, logout, getSession } from '../lib/auth';
 
-export default function LoginForm({ variant = 'page', onClose }) {
+export default function LoginForm({ variant = 'page', onClose, onSuccess }) {
   const router = useRouter();
   const isDropdown = variant === 'dropdown';
   const [email, setEmail] = useState('');
@@ -63,12 +63,14 @@ export default function LoginForm({ variant = 'page', onClose }) {
     }
 
     if (result.user.role === 'admin') {
+      onSuccess?.();
       onClose?.();
       router.push('/admin');
       return;
     }
 
     if (result.user.role === 'provider') {
+      onSuccess?.();
       onClose?.();
       router.push('/dashboard');
       return;

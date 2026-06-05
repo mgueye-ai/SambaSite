@@ -2,23 +2,31 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getSession, getCurrentUser } from '../lib/auth';
+import { getSession, getCurrentUser, logout } from '../lib/auth';
 import LoginForm from './LoginForm';
 
 export default function DashboardLoginDropdown({ active = false }) {
   const router = useRouter();
   const wrapRef = useRef(null);
   const [open, setOpen] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
+
+  const refreshUser = async () => {
+    const session = await getSession();
+    if (!session) {
+      setUser(null);
+      return;
+    }
+    const u = await getCurrentUser();
+    if (u?.role === 'provider' || u?.role === 'admin') {
+      setUser(u);
+    } else {
+      setUser(null);
+    }
+  };
 
   useEffect(() => {
-    getSession().then(async (session) => {
-      if (!session) return;
-      const user = await getCurrentUser();
-      if (user?.role === 'provider' || user?.role === 'admin') {
-        setLoggedIn(true);
-      }
-    });
+    refreshUser();
   }, []);
 
   useEffect(() => {
@@ -43,13 +51,23 @@ export default function DashboardLoginDropdown({ active = false }) {
   }, [open]);
 
   const handleButtonClick = async () => {
-    if (loggedIn) {
-      const user = await getCurrentUser();
-      router.push(user?.role === 'admin' ? '/admin' : '/dashboard');
-      return;
-    }
+    await refreshUser();
     setOpen((o) => !o);
   };
+
+  const goToDashboard = () => {
+    setOpen(false);
+    router.push(user?.role === 'admin' ? '/admin' : '/dashboard');
+  };
+
+  const handleSignOut = async () => {
+    await logout();
+    setUser(null);
+    setOpen(false);
+  };
+
+  const heading = user ? 'Welcome back' : 'Sign in';
+  const displayName = user?.providerInfo?.organizationName || user?.name || user?.email;
 
   return (
     <div className="dash-login-wrap" ref={wrapRef}>
@@ -67,11 +85,9 @@ export default function DashboardLoginDropdown({ active = false }) {
           <rect x="14" y="14" width="7" height="7" rx="1" />
         </svg>
         <span>Dashboard</span>
-        {!loggedIn && (
-          <svg className="dash-nav-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        )}
+        <svg className="dash-nav-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
       </button>
 
       {open && (
@@ -80,7 +96,7 @@ export default function DashboardLoginDropdown({ active = false }) {
           <div className="dash-login-dropdown-head">
             <div>
               <p className="dash-login-dropdown-label">Samba</p>
-              <p className="dash-login-dropdown-heading">Sign in</p>
+              <p className="dash-login-dropdown-heading">{heading}</p>
             </div>
             <button type="button" className="dash-login-close" onClick={() => setOpen(false)} aria-label="Close">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -88,7 +104,25 @@ export default function DashboardLoginDropdown({ active = false }) {
               </svg>
             </button>
           </div>
-          <LoginForm variant="dropdown" onClose={() => setOpen(false)} />
+
+          {user ? (
+            <div className="dash-login-panel dash-login-signed-in">
+              <p className="dash-signed-name">{displayName}</p>
+              <p className="dash-signed-email">{user.email}</p>
+              <button type="button" className="btn-primary btn-full" onClick={goToDashboard}>
+                Open Dashboard
+              </button>
+              <button type="button" className="btn-ghost btn-full dash-signout-btn" onClick={handleSignOut}>
+                Sign out
+              </button>
+            </div>
+          ) : (
+            <LoginForm
+              variant="dropdown"
+              onClose={() => setOpen(false)}
+              onSuccess={refreshUser}
+            />
+          )}
         </div>
       )}
     </div>

@@ -235,6 +235,28 @@ button {
   font-size: 12px;
 }
 
+.dash-login-signed-in {
+  text-align: center;
+}
+
+.dash-signed-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.dash-signed-email {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 16px;
+}
+
+.dash-signout-btn {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
 .back-link {
   color: var(--text-secondary);
   font-size: 14px;

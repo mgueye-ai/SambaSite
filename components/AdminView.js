@@ -57,7 +57,11 @@ export default function AdminView() {
       <div className="dash-page">
         <main className="dash-main">
           <p className="error-msg">{error}</p>
-          <p className="dash-hint">Make sure SUPABASE_SERVICE_ROLE_KEY is set and supabase/admin.sql has been run.</p>
+          <p className="dash-hint">
+            {error === 'Admin access required'
+              ? 'Add SUPABASE_SERVICE_ROLE_KEY in Vercel → Settings → Environment Variables, then redeploy.'
+              : 'Make sure SUPABASE_SERVICE_ROLE_KEY is set and supabase/admin.sql has been run.'}
+          </p>
           <button type="button" className="btn-primary" onClick={() => window.location.reload()}>Retry</button>
         </main>
       </div>
