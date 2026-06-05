@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUserFromRequest, canAccessOrganizer } from '../../../../lib/server-auth';
+import { getUserFromRequest, canAccessOrganizer, getDbClientForUser } from '../../../../lib/server-auth';
 import { updateEvent } from '../../../../lib/dashboard-data';
 
 export async function PATCH(request) {
@@ -16,8 +16,13 @@ export async function PATCH(request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
+  const db = getDbClientForUser(request, user, targetOrganizer);
+  if (!db) {
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+  }
+
   try {
-    const event = await updateEvent(targetOrganizer, eventId, updates);
+    const event = await updateEvent(targetOrganizer, eventId, updates, db);
     return NextResponse.json({ event });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 400 });
