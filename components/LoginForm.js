@@ -60,14 +60,19 @@ export default function LoginForm() {
       return;
     }
 
-    if (result.user.role !== 'provider') {
-      await logout();
-      setError('This dashboard is for organizer accounts only.');
-      setLoading(false);
+    if (result.user.role === 'admin') {
+      router.push('/admin');
       return;
     }
 
-    router.push('/dashboard');
+    if (result.user.role === 'provider') {
+      router.push('/dashboard');
+      return;
+    }
+
+    await logout();
+    setError('This dashboard is for organizer accounts only.');
+    setLoading(false);
   };
 
   return (
@@ -119,8 +124,6 @@ export default function LoginForm() {
 
       <p className="auth-note">
         Attendee accounts use the Samba mobile app. <Link href="/">Learn more →</Link>
-        <br />
-        Samba team? <Link href="/admin/login">Admin login →</Link>
       </p>
     </div>
   );

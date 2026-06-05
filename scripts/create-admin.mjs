@@ -73,4 +73,4 @@ console.log('');
 console.log(`Email:    ${ADMIN_EMAIL}`);
 console.log(`Password: ${ADMIN_PASSWORD}`);
 console.log('');
-console.log('Login at: /admin/login');
+console.log('Login at: /login');

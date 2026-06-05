@@ -1,13 +1,5 @@
-import AdminLoginForm from '../../../components/AdminLoginForm';
-
-export const metadata = {
-  title: 'Admin Login — Samba',
-};
+import { redirect } from 'next/navigation';
 
 export default function AdminLoginPage() {
-  return (
-    <div className="auth-page">
-      <AdminLoginForm />
-    </div>
-  );
+  redirect('/login');
 }

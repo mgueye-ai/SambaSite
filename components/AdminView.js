@@ -17,26 +17,32 @@ export default function AdminView() {
   const [user, setUser] = useState(null);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('organizers');
 
   useEffect(() => {
+    let cancelled = false;
+
     (async () => {
       const u = await getCurrentUser();
       if (!u || u.role !== 'admin') {
-        router.replace('/admin/login');
+        router.replace('/login');
         return;
       }
+      if (cancelled) return;
       setUser(u);
       try {
         const platform = await apiFetch('/api/admin');
-        setData(platform);
-      } catch {
-        router.replace('/admin/login');
+        if (!cancelled) setData(platform);
+      } catch (err) {
+        if (!cancelled) setError(err.message || 'Failed to load platform data.');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
+
+    return () => { cancelled = true; };
   }, [router]);
 
   const handleImpersonate = (org) => {
@@ -44,7 +50,20 @@ export default function AdminView() {
     router.push('/dashboard');
   };
 
-  if (loading) return <p className="empty-note dash-loading">Loading admin panel...</p>;
+  if (loading) return <p className="empty-note dash-loading">Loading dashboard...</p>;
+
+  if (error) {
+    return (
+      <div className="dash-page">
+        <main className="dash-main">
+          <p className="error-msg">{error}</p>
+          <p className="dash-hint">Make sure SUPABASE_SERVICE_ROLE_KEY is set and supabase/admin.sql has been run.</p>
+          <button type="button" className="btn-primary" onClick={() => window.location.reload()}>Retry</button>
+        </main>
+      </div>
+    );
+  }
+
   if (!data) return null;
 
   const filteredOrgs = data.organizers.filter((o) => {
@@ -72,7 +91,7 @@ export default function AdminView() {
           <button
             type="button"
             className="btn-ghost"
-            onClick={async () => { await logout(); router.push('/admin/login'); }}
+            onClick={async () => { await logout(); router.push('/login'); }}
           >
             Sign Out
           </button>

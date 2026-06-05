@@ -63,7 +63,7 @@ export default function OrganizerDashboard() {
       try {
         const u = await getCurrentUser();
         if (!u || (u.role !== 'provider' && u.role !== 'admin')) {
-          router.replace(u?.role === 'admin' ? '/admin/login' : '/login');
+          router.replace('/login');
           return;
         }
         setUser(u);
