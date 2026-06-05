@@ -2669,12 +2669,22 @@ a.ed-info-block:hover .ed-map-hint {
 }
 
 .sdc-logo {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 22px;
   font-weight: 800;
   letter-spacing: 1px;
-  color: var(--accent);
+  color: #fff;
   margin-bottom: 8px;
+}
+
+.sdc-logo-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  object-fit: cover;
 }
 
 .sdc-sidebar-badge {
@@ -3525,7 +3535,342 @@ a.ed-info-block:hover .ed-map-hint {
   display: block;
 }
 
+/* ── Create event (desktop) ── */
+.sdc-create-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.sdc-create-preview {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sdc-create-cover {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #161616;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  aspect-ratio: 1;
+}
+
+.sdc-create-cover-label {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.sdc-create-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sdc-create-cover-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.sdc-create-cover-edit {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.65);
+  cursor: pointer;
+}
+
+.sdc-create-host {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #161616;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sdc-create-host-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.sdc-create-host-name {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sdc-create-live-preview {
+  padding: 18px;
+  border-radius: 16px;
+  background: #161616;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sdc-create-live-preview h3 {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 8px 0 4px;
+}
+
+.sdc-create-live-preview p {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.sdc-create-preview-desc {
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.sdc-create-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sdc-create-section {
+  padding: 24px;
+  border-radius: 20px;
+  background: #161616;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sdc-create-section h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.sdc-create-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.sdc-create-section-head h2 {
+  margin-bottom: 0;
+}
+
+.sdc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.sdc-field-grow {
+  flex: 1;
+}
+
+.sdc-field span,
+.sdc-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sdc-field input,
+.sdc-field textarea,
+.sdc-includes input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sdc-field input:focus,
+.sdc-field textarea:focus,
+.sdc-includes input:focus {
+  outline: none;
+  border-color: rgba(255, 75, 140, 0.5);
+}
+
+.sdc-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.sdc-field-row-3 {
+  grid-template-columns: 2fr 1fr 1fr;
+}
+
+.sdc-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.sdc-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+.sdc-ticket-card {
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 14px;
+}
+
+.sdc-ticket-card-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.sdc-ticket-remove {
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+  border-radius: 8px;
+}
+
+.sdc-includes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sdc-create-error {
+  color: #f87171;
+  font-size: 14px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.sdc-create-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.sdc-create-cancel {
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.sdc-create-submit {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+}
+
+.sdc-create-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sdc-create-bar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sdc-create-success {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 40px;
+  text-align: center;
+  border-radius: 24px;
+  background: #161616;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sdc-create-success h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.sdc-create-success-title {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 24px;
+}
+
+.sdc-create-code {
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(255, 75, 140, 0.1);
+  border: 1px solid rgba(255, 75, 140, 0.25);
+  margin-bottom: 12px;
+}
+
+.sdc-create-code span {
+  display: block;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 6px;
+}
+
+.sdc-create-code strong {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sdc-empty-card .sdc-create-submit {
+  margin-top: 16px;
+}
+
 @media (max-width: 1100px) {
+  .sdc-create-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sdc-create-preview {
+    position: static;
+  }
+
+  .sdc-field-row,
+  .sdc-field-row-3 {
+    grid-template-columns: 1fr;
+  }
+
   .sdc-layout {
     grid-template-columns: 1fr;
   }

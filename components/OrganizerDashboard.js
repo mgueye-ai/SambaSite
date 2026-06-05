@@ -8,6 +8,7 @@ import { apiFetch } from '../lib/api-client';
 import { getImpersonation, clearImpersonation } from '../lib/impersonation';
 import { computeDashboardStats } from '../lib/events';
 import DashboardLayout from './dashboard/DashboardLayout';
+import CreateEventForm, { CreateEventSuccess } from './CreateEventForm';
 import {
   AreaChart, DashboardAvatar, DonutChart, EventCard, fmt$, fmtN, HBar, HeroStat,
   PeriodPills, SectionLabel, Sparkline, SdcCard, StatusBadge,
@@ -16,6 +17,7 @@ import {
 const PERIODS = ['day', 'week', 'month', 'year', 'all'];
 const TABS = [
   { id: 'overview', label: 'Overview', icon: '◈' },
+  { id: 'create', label: 'Create', icon: '＋' },
   { id: 'events', label: 'Events', icon: '▤' },
   { id: 'payouts', label: 'Payouts', icon: '◧' },
   { id: 'tickets', label: 'Tickets', icon: '◫' },
@@ -78,7 +80,9 @@ export default function OrganizerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionMsg, setActionMsg] = useState('');
+  const [createdEvent, setCreatedEvent] = useState(null);
   const impersonation = typeof window !== 'undefined' ? getImpersonation() : null;
+  const activeOrganizerId = impersonation?.organizerId || user?.id;
 
   const loadData = useCallback(async (organizerId) => {
     const q = organizerId ? `?organizerId=${organizerId}` : '';
@@ -272,8 +276,37 @@ export default function OrganizerDashboard() {
           </div>
         )}
 
+        {tab === 'create' && (
+          createdEvent ? (
+            <CreateEventSuccess
+              event={createdEvent}
+              onDone={async () => {
+                setCreatedEvent(null);
+                setTab('events');
+                await refresh();
+              }}
+            />
+          ) : (
+            <CreateEventForm
+              profile={profile}
+              user={user}
+              organizerId={activeOrganizerId}
+              onSuccess={(event) => {
+                setCreatedEvent(event);
+                setActionMsg('Event created');
+              }}
+              onCancel={() => setTab('events')}
+            />
+          )
+        )}
+
         {tab === 'events' && (
           <div className="sdc-stack">
+            <div className="sdc-create-bar">
+              <button type="button" className="sdc-create-submit" onClick={() => { setCreatedEvent(null); setTab('create'); }}>
+                + Create event
+              </button>
+            </div>
             <div className="sdc-filter-pills">
               {['all', 'upcoming', 'live', 'past'].map((f) => (
                 <button
@@ -289,8 +322,9 @@ export default function OrganizerDashboard() {
             </div>
             {events.length === 0 && (
               <div className="sdc-empty-card">
-                <h3>No events in your dashboard yet</h3>
-                <p>Events are created in the Samba app. Open the app while signed in as an organizer — your events (including past ones) will sync to the web dashboard automatically.</p>
+                <h3>No events yet</h3>
+                <p>Create your first event here or in the Samba app — both stay in sync.</p>
+                <button type="button" className="sdc-create-submit" onClick={() => setTab('create')}>Create event</button>
               </div>
             )}
             <div className="sdc-event-grid">
