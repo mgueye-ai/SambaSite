@@ -5,18 +5,18 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { checkEmail, login, logout, getSession } from '../lib/auth';
 
-export default function LoginForm({ variant = 'page', onClose, onSuccess }) {
+export default function LoginForm() {
   const router = useRouter();
-  const isDropdown = variant === 'dropdown';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailChecked, setEmailChecked] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isDropdown) return;
     getSession().then(async (session) => {
       if (!session) return;
       const { getCurrentUser } = await import('../lib/auth');
@@ -24,10 +24,13 @@ export default function LoginForm({ variant = 'page', onClose, onSuccess }) {
       if (user?.role === 'provider') router.replace('/dashboard');
       if (user?.role === 'admin') router.replace('/admin');
     });
-  }, [router, isDropdown]);
+  }, [router]);
 
   const handleEmailCheck = async () => {
+    setChecking(true);
+    setError('');
     const result = await checkEmail(email);
+    setChecking(false);
     if (!result.success) {
       setError(result.message);
       return;
@@ -63,15 +66,11 @@ export default function LoginForm({ variant = 'page', onClose, onSuccess }) {
     }
 
     if (result.user.role === 'admin') {
-      onSuccess?.();
-      onClose?.();
       router.push('/admin');
       return;
     }
 
     if (result.user.role === 'provider') {
-      onSuccess?.();
-      onClose?.();
       router.push('/dashboard');
       return;
     }
@@ -81,63 +80,64 @@ export default function LoginForm({ variant = 'page', onClose, onSuccess }) {
     setLoading(false);
   };
 
-  const form = (
-    <form onSubmit={handleSubmit} className={isDropdown ? 'dash-login-form' : undefined}>
-      <label className="field-label" htmlFor={isDropdown ? 'nav-email' : 'email'}>Email</label>
-      <div className={`input-wrap${emailChecked ? ' checked' : ''}`}>
-        <input
-          id={isDropdown ? 'nav-email' : 'email'}
-          type="email"
-          value={email}
-          onChange={(e) => { setEmail(e.target.value); setEmailChecked(false); setShowPassword(false); }}
-          disabled={emailChecked}
-          placeholder="you@example.com"
-          required
-          autoComplete="email"
-        />
-        {emailChecked && (
-          <button type="button" className="input-action" onClick={() => { setEmailChecked(false); setShowPassword(false); setPassword(''); }}>
-            Change
-          </button>
-        )}
-      </div>
+  const resetEmail = () => {
+    setEmailChecked(false);
+    setShowPassword(false);
+    setPassword('');
+    setError('');
+  };
 
-      {showPassword && (
-        <>
-          <label className="field-label" htmlFor={isDropdown ? 'nav-password' : 'password'}>Password</label>
-          <div className="input-wrap">
+  return (
+    <div className="app-login">
+      <h1 className="app-login-brand">Samba</h1>
+      <form className="app-login-form" onSubmit={handleSubmit}>
+        <h2 className="app-login-title">Sign in</h2>
+
+        <div className={`app-login-input${emailChecked ? ' checked' : ''}`}>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); if (emailChecked) resetEmail(); }}
+            disabled={emailChecked}
+            placeholder="Email"
+            required
+            autoComplete="email"
+          />
+          {checking && <span className="app-login-spinner" />}
+          {emailChecked && (
+            <button type="button" className="app-login-edit" onClick={resetEmail} aria-label="Change email">
+              Edit
+            </button>
+          )}
+        </div>
+
+        {showPassword && (
+          <div className="app-login-input">
             <input
-              id={isDropdown ? 'nav-password' : 'password'}
-              type="password"
+              type={showPw ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
               required
               autoComplete="current-password"
             />
+            <button type="button" className="app-login-edit" onClick={() => setShowPw((v) => !v)} aria-label="Toggle password">
+              {showPw ? 'Hide' : 'Show'}
+            </button>
           </div>
-        </>
-      )}
+        )}
 
-      {error && <p className="error-msg">{error}</p>}
+        {error && <p className="app-login-error">{error}</p>}
 
-      <button type="submit" className="btn-primary btn-full" disabled={loading} style={{ marginTop: isDropdown ? 12 : 16 }}>
-        {loading ? 'Signing in...' : showPassword ? 'Sign In' : 'Continue'}
-      </button>
-    </form>
-  );
+        {showPassword && (
+          <button type="submit" className="app-login-btn" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+        )}
+      </form>
 
-  if (isDropdown) {
-    return <div className="dash-login-panel">{form}</div>;
-  }
-
-  return (
-    <div className="auth-card">
-      <h1>Organizer Dashboard</h1>
-      <p className="auth-sub">Sign in with your organizer account to view analytics and manage your events.</p>
-      {form}
-      <p className="auth-note">
-        Attendee accounts use the Samba mobile app. <Link href="/">Learn more →</Link>
+      <p className="app-login-note">
+        <Link href="/">← Back to site</Link>
       </p>
     </div>
   );

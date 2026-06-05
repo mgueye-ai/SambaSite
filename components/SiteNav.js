@@ -1,12 +1,12 @@
 import Link from 'next/link';
-import DashboardLoginDropdown from './DashboardLoginDropdown';
+import NavAuthLink from './NavAuthLink';
 
-export default function SiteNav({ active = null, showBack = false, showDashboard = false }) {
+export default function SiteNav({ showBack = false, showAuth = false }) {
   return (
     <nav className="site-nav">
       <Link href="/" className="logo">Samba</Link>
       {showBack ? (
-        <Link href="/" className="back-link">← Back to site</Link>
+        <Link href="/" className="back-link">← Back</Link>
       ) : (
         <>
           <ul className="nav-links">
@@ -14,9 +14,7 @@ export default function SiteNav({ active = null, showBack = false, showDashboard
             <li><a href="/#organizers">For Organizers</a></li>
             <li><a href="/#features">Features</a></li>
           </ul>
-          {showDashboard && (
-            <DashboardLoginDropdown active={active === 'dashboard'} />
-          )}
+          {showAuth && <NavAuthLink />}
         </>
       )}
     </nav>

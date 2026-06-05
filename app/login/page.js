@@ -1,13 +1,11 @@
-import SiteNav from '../../components/SiteNav';
 import LoginForm from '../../components/LoginForm';
+
+export const metadata = { title: 'Sign in — Samba' };
 
 export default function LoginPage() {
   return (
-    <div className="auth-page">
-      <SiteNav showBack />
-      <main className="auth-main">
-        <LoginForm />
-      </main>
+    <div className="app-login-page">
+      <LoginForm />
     </div>
   );
 }
