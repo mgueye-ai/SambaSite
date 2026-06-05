@@ -25,6 +25,73 @@ const TABS = [
   { id: 'settings', label: 'Settings' },
 ];
 
+function getAvatarUrl(profile, user) {
+  return profile?.avatar
+    || profile?.providerInfo?.partyLogo
+    || profile?.profilePicture
+    || user?.providerInfo?.partyLogo
+    || user?.profilePicture
+    || null;
+}
+
+function getDisplayName(profile, user, impersonation) {
+  return impersonation?.organizerName
+    || profile?.providerInfo?.organizationName
+    || profile?.name
+    || user?.providerInfo?.organizationName
+    || user?.name
+    || 'Organizer';
+}
+
+function DashboardAvatar({ profile, user, size = 'md' }) {
+  const url = getAvatarUrl(profile, user);
+  const name = getDisplayName(profile, user);
+  const initials = name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+
+  if (url) {
+    return <img src={url} alt="" className={`dash-avatar dash-avatar-${size}`} />;
+  }
+
+  return (
+    <span className={`dash-avatar dash-avatar-${size} dash-avatar-ph`} aria-hidden>
+      {initials}
+    </span>
+  );
+}
+
+function formatAddress(addr) {
+  if (!addr || typeof addr !== 'object') return null;
+  const parts = [
+    addr.street,
+    addr.addressLine2,
+    addr.city,
+    addr.state,
+    addr.zip || addr.zipCode,
+    addr.country,
+  ].filter(Boolean);
+  return parts.length ? parts.join(', ') : null;
+}
+
+function mergeProfile(apiProfile, clientUser) {
+  if (!apiProfile && !clientUser) return null;
+  const providerInfo = {
+    ...(clientUser?.providerInfo || {}),
+    ...(apiProfile?.providerInfo || {}),
+  };
+
+  return {
+    ...(clientUser || {}),
+    ...(apiProfile || {}),
+    providerInfo,
+    profilePicture: apiProfile?.profilePicture || clientUser?.profilePicture || null,
+    avatar: providerInfo.partyLogo
+      || apiProfile?.profilePicture
+      || clientUser?.providerInfo?.partyLogo
+      || clientUser?.profilePicture
+      || null,
+  };
+}
+
 function TrendChart({ data, valueKey = 'revenue' }) {
   const max = Math.max(...data.map((d) => d[valueKey]), 1);
   return (
@@ -114,17 +181,14 @@ export default function OrganizerDashboard() {
 
   const events = data?.events || [];
   const stats = useMemo(() => computeDashboardStats(events, period), [events, period]);
-  const orgName = impersonation?.organizerName
-    || data?.profile?.providerInfo?.organizationName
-    || data?.profile?.name
-    || user?.providerInfo?.organizationName
-    || user?.name;
+  const orgName = getDisplayName(data?.profile, user, impersonation);
 
   if (loading) return <p className="empty-note dash-loading">Loading dashboard...</p>;
   if (error) return <p className="error-msg dash-loading">{error}</p>;
   if (!data) return null;
 
-  const { payouts, tickets, trends, guests, profile } = data;
+  const { payouts, tickets, trends, guests } = data;
+  const profile = mergeProfile(data.profile, user);
   const topTickets = [...events].sort((a, b) => (b.bookedSpots || 0) - (a.bookedSpots || 0)).slice(0, 5);
   const maxT = Math.max(...topTickets.map((e) => e.bookedSpots || 0), 1);
   const topRev = [...events].sort((a, b) => (b.revenue || 0) - (a.revenue || 0)).slice(0, 5);
@@ -154,8 +218,11 @@ export default function OrganizerDashboard() {
         </div>
         <div className="dash-header-right">
           <div className="dash-user">
-            <strong>{orgName}</strong>
-            <span>{impersonation?.organizerEmail || user?.email}</span>
+            <DashboardAvatar profile={profile} user={user} size="sm" />
+            <div className="dash-user-text">
+              <strong>{orgName}</strong>
+              <span>{impersonation?.organizerEmail || profile?.email || user?.email}</span>
+            </div>
           </div>
           {user?.role === 'admin' && (
             <Link href="/admin" className="btn-ghost">Admin Panel</Link>
@@ -449,24 +516,58 @@ export default function OrganizerDashboard() {
 
         {tab === 'settings' && (
           <div className="dash-grid">
+            <div className="dash-card dash-card-wide settings-profile-card">
+              <div className="settings-profile-head">
+                <DashboardAvatar profile={profile} user={user} size="lg" />
+                <div className="settings-profile-meta">
+                  <h3>{profile?.providerInfo?.organizationName || profile?.name || orgName}</h3>
+                  {profile?.providerInfo?.description && (
+                    <p className="settings-bio">{profile.providerInfo.description}</p>
+                  )}
+                  <div className="settings-profile-tags">
+                    <span className={`status-badge status-${payouts.verificationStatus === 'verified' ? 'live' : 'upcoming'}`}>
+                      {payouts.verificationStatus}
+                    </span>
+                    {profile?.role && <span className="settings-tag">{profile.role}</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="dash-card">
               <h3>Organization</h3>
-              <div className="settings-field"><label>Name</label><span>{profile?.providerInfo?.organizationName || profile?.name || '—'}</span></div>
-              <div className="settings-field"><label>Email</label><span>{profile?.email}</span></div>
-              <div className="settings-field"><label>Phone</label><span>{profile?.providerInfo?.partyPhone || '—'}</span></div>
+              <div className="settings-field"><label>Organization</label><span>{profile?.providerInfo?.organizationName || '—'}</span></div>
+              <div className="settings-field"><label>Contact Email</label><span>{profile?.providerInfo?.partyEmail || profile?.email || '—'}</span></div>
+              <div className="settings-field"><label>Phone</label><span>{profile?.providerInfo?.partyPhone || profile?.phoneNumber || '—'}</span></div>
               <div className="settings-field"><label>Website</label><span>{profile?.providerInfo?.website || '—'}</span></div>
+              <div className="settings-field"><label>Business Address</label><span>{formatAddress(profile?.providerInfo?.businessAddress) || '—'}</span></div>
             </div>
+
             <div className="dash-card">
-              <h3>Verification</h3>
+              <h3>Personal</h3>
+              <div className="settings-field"><label>Name</label><span>{profile?.name || '—'}</span></div>
+              <div className="settings-field"><label>Account Email</label><span>{profile?.email || '—'}</span></div>
+              <div className="settings-field"><label>Phone</label><span>{profile?.phoneNumber || '—'}</span></div>
+              <div className="settings-field"><label>Date of Birth</label><span>{profile?.dateOfBirth || '—'}</span></div>
+              <div className="settings-field"><label>Address</label><span>{formatAddress(profile?.address) || '—'}</span></div>
+            </div>
+
+            <div className="dash-card">
+              <h3>Verification & Payouts</h3>
               <div className="settings-field"><label>Status</label><span className={`status-badge status-${payouts.verificationStatus === 'verified' ? 'live' : 'upcoming'}`}>{payouts.verificationStatus}</span></div>
+              <div className="settings-field"><label>Stripe Connect</label><span>{payouts.stripeConnected ? 'Connected' : 'Not connected'}</span></div>
               <div className="settings-field"><label>Tax Info</label><span>{profile?.providerInfo?.taxInfo ? 'On file' : 'Not submitted'}</span></div>
               <div className="settings-field"><label>Bank Account</label><span>{profile?.providerInfo?.bankAccountInfo ? 'On file' : 'Not submitted'}</span></div>
+              <div className="settings-field"><label>ID Verification</label><span>{profile?.providerInfo?.identityVerification ? 'Submitted' : 'Not submitted'}</span></div>
             </div>
+
             <div className="dash-card">
               <h3>Account</h3>
-              <div className="settings-field"><label>User ID</label><span className="mono">{profile?.id}</span></div>
-              <div className="settings-field"><label>Role</label><span>{profile?.role}</span></div>
+              <div className="settings-field"><label>User ID</label><span className="mono">{profile?.id || user?.id}</span></div>
+              <div className="settings-field"><label>Role</label><span>{profile?.role || user?.role}</span></div>
+              <div className="settings-field"><label>Mode</label><span>{profile?.currentMode || '—'}</span></div>
               <div className="settings-field"><label>Member Since</label><span>{profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : '—'}</span></div>
+              <div className="settings-field"><label>Last Updated</label><span>{profile?.updatedAt ? new Date(profile.updatedAt).toLocaleDateString() : '—'}</span></div>
             </div>
           </div>
         )}
