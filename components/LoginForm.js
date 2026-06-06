@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import SambaLogo from './SambaLogo';
 import { checkEmail, login, logout, getSession } from '../lib/auth';
 
 export default function LoginForm() {
@@ -89,7 +90,10 @@ export default function LoginForm() {
 
   return (
     <div className="app-login">
-      <h1 className="app-login-brand">Samba</h1>
+      <Link href="/" className="app-login-brand-link" aria-label="Samba home">
+        <SambaLogo size={48} className="app-login-logo" />
+      </Link>
+
       <form className="app-login-form" onSubmit={handleSubmit}>
         <h2 className="app-login-title">Sign in</h2>
 

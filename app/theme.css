@@ -16,7 +16,6 @@ body {
 
 /* ── Buttons & CTAs ── */
 .btn-primary,
-.app-login-btn,
 .sdc-create-submit,
 .sdc-action-btn {
   background: var(--text);
@@ -27,7 +26,6 @@ body {
 }
 
 .btn-primary:hover,
-.app-login-btn:hover:not(:disabled),
 .sdc-create-submit:hover:not(:disabled) {
   transform: none;
   box-shadow: none;
@@ -50,28 +48,21 @@ body {
 }
 
 /* ── Login ── */
-.app-login-brand {
-  color: var(--text);
-  font-weight: 700;
-  font-size: 32px;
+.app-login-btn {
+  background: linear-gradient(135deg, #f5b642 0%, #ff8a00 100%);
+  color: #1a0e00;
+  box-shadow: 0 8px 24px -6px rgba(255, 138, 0, 0.4);
 }
 
-.app-login-title {
-  font-weight: 600;
-  font-size: 24px;
+.app-login-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 12px 32px -6px rgba(255, 138, 0, 0.5);
 }
 
 .app-login-input input:focus {
-  border-color: var(--border);
-  background: var(--surface-2);
-}
-
-.app-login-edit {
-  color: var(--text-secondary);
-}
-
-.app-login-spinner {
-  border-top-color: var(--text-secondary);
+  border-color: rgba(245, 182, 66, 0.4);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 /* ── Marketing hero (subtle, no pink glow) ── */

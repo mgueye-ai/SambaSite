@@ -9,10 +9,11 @@ import { getImpersonation, clearImpersonation } from '../lib/impersonation';
 import { computeDashboardStats } from '../lib/events';
 import DashboardLayout from './dashboard/DashboardLayout';
 import CreateEventForm, { CreateEventSuccess } from './CreateEventForm';
+import SettingsPanel from './SettingsPanel';
 import { getEventManagePath } from '../lib/event-manage';
 import {
-  AreaChart, DashboardAvatar, DonutChart, EventCard, fmt$, fmtN, HBar, HeroStat,
-  PeriodPills, SectionLabel, Sparkline, SdcCard, StatusBadge,
+  AnalyticsBand, AppEventRow, AreaChart, DashboardAvatar, DonutChart, EventCard, FloatStat, fmt$, fmtN,
+  HBar, HeroStat, PeriodPills, SectionLabel, Sparkline, SdcCard, StatusBadge,
 } from './dashboard/ui';
 
 const PERIODS = ['day', 'week', 'month', 'year', 'all'];
@@ -21,8 +22,6 @@ const TABS = [
   { id: 'create', label: 'Create', icon: '＋' },
   { id: 'events', label: 'Events', icon: '▤' },
   { id: 'payouts', label: 'Payouts', icon: '◧' },
-  { id: 'tickets', label: 'Tickets', icon: '◫' },
-  { id: 'guests', label: 'Guests', icon: '◬' },
   { id: 'settings', label: 'Settings', icon: '⚙' },
 ];
 
@@ -34,12 +33,6 @@ function getAvatarUrl(profile, user) {
 function getDisplayName(profile, user, impersonation) {
   return impersonation?.organizerName || profile?.providerInfo?.organizationName
     || profile?.name || user?.providerInfo?.organizationName || user?.name || 'Organizer';
-}
-
-function formatAddress(addr) {
-  if (!addr || typeof addr !== 'object') return null;
-  const parts = [addr.street, addr.addressLine2, addr.city, addr.state, addr.zip || addr.zipCode, addr.country].filter(Boolean);
-  return parts.length ? parts.join(', ') : null;
 }
 
 function mergeProfile(apiProfile, clientUser) {
@@ -177,7 +170,7 @@ export default function OrganizerDashboard() {
         subtitle={orgName}
         tabs={TABS.map((t) => ({
           ...t,
-          count: t.id === 'events' ? events.length : t.id === 'tickets' ? tickets.length : null,
+          count: t.id === 'events' ? events.length : null,
         }))}
         activeTab={tab}
         onTabChange={setTab}
@@ -186,101 +179,107 @@ export default function OrganizerDashboard() {
         email={impersonation?.organizerEmail || profile?.email || user?.email}
         balance={fmt$(payouts.balance)}
         processing={fmt$(Math.max(0, payouts.netEarnings - payouts.balance - payouts.paidOut))}
-        headerStats={[
-          { label: 'Events', value: fmtN(events.length) },
-          { label: 'Tickets', value: fmtN(stats.totalTickets) },
-          { label: 'Live', value: fmtN(stats.live.length) },
-        ]}
         impersonation={impersonation}
         onExitImpersonation={() => { clearImpersonation(); router.push('/admin'); }}
         adminLink={user?.role === 'admin' ? <Link href="/admin" className="sdc-sidebar-link">Admin panel</Link> : null}
         onSignOut={async () => { await logout(); router.push('/login'); }}
         toast={actionMsg}
+        contentClassName={['overview', 'payouts'].includes(tab) ? 'sdc-content--analytics' : tab === 'create' ? 'sdc-content--create' : tab === 'events' ? 'sdc-content--events' : tab === 'settings' ? 'sdc-content--analytics sdc-content--settings' : ''}
       >
         {tab === 'overview' && (
-          <div className="sdc-stack">
-            <SdcCard className="sdc-revenue-hero">
-              <PeriodPills periods={PERIODS} active={period} onChange={setPeriod} />
-              <div className="sdc-revenue-row">
-                <div>
-                  <p className="sdc-revenue-amount">{fmt$(stats.revenuePeriod)}</p>
-                  <p className="sdc-revenue-label">
-                    {period === 'all' ? 'Total revenue' : `Revenue · This ${period}`}
-                  </p>
-                  <div className="sdc-hero-grid">
-                    <HeroStat label="Events" value={fmtN(events.length)} />
-                    <HeroStat label="Tickets sold" value={fmtN(stats.totalTickets)} />
-                    <HeroStat label="Fill rate" value={`${stats.fillRate}%`} />
-                    <HeroStat label="Net earnings" value={fmt$(payouts.netEarnings)} accent />
+          <div className="sdc-analytics">
+            <section className="sdc-analytics-hero">
+              <div className="sdc-analytics-hero-top">
+                <PeriodPills periods={PERIODS} active={period} onChange={setPeriod} />
+                <div className="sdc-analytics-hero-row">
+                  <div className="sdc-analytics-hero-main">
+                    <span className="sdc-analytics-kicker">Revenue signal</span>
+                    <p className="sdc-analytics-amount">{fmt$(stats.revenuePeriod)}</p>
+                    <p className="sdc-analytics-caption">
+                      {period === 'all' ? 'Total revenue' : `Revenue · This ${period}`}
+                    </p>
+                    <div className="sdc-analytics-stats">
+                      <FloatStat label="Events" value={fmtN(events.length)} />
+                      <FloatStat label="Tickets sold" value={fmtN(stats.totalTickets)} />
+                      <FloatStat label="Fill rate" value={`${stats.fillRate}%`} />
+                      <FloatStat label="Net earnings" value={fmt$(payouts.netEarnings)} accent />
+                    </div>
+                  </div>
+                  <div className="sdc-analytics-spark">
+                    <Sparkline
+                      data={trendRev.length > 1 ? trendRev : [0, stats.revenuePeriod * 0.4, stats.revenuePeriod]}
+                      width={280}
+                      height={64}
+                    />
                   </div>
                 </div>
-                <Sparkline data={trendRev.length > 1 ? trendRev : [0, stats.revenuePeriod * 0.4, stats.revenuePeriod]} width={320} height={72} />
               </div>
-            </SdcCard>
+            </section>
 
             {stats.live.length > 0 && (
-              <div className="sdc-live-banner">
+              <div className="sdc-analytics-live">
                 <span className="sdc-live-dot" />
                 <span>{stats.live.length} event{stats.live.length > 1 ? 's' : ''} live right now</span>
                 <button type="button" onClick={() => { setTab('events'); setEventFilter('live'); }}>View live</button>
               </div>
             )}
 
-            <div className="sdc-grid-2">
-              <SdcCard title="Revenue trend" meta="Last 30 days" wide>
-                <AreaChart data={trendRev} labels={trendLabels} />
-              </SdcCard>
-              <SdcCard title="Ticket sales" meta="Last 30 days" wide>
+            <div className="sdc-analytics-charts">
+              <AnalyticsBand title="Revenue trend" meta="Last 30 days">
+                <AreaChart data={trendRev} labels={trendLabels} height={130} />
+              </AnalyticsBand>
+              <AnalyticsBand title="Ticket velocity" meta="Last 30 days">
                 <AreaChart
                   data={trends.revenue30d?.map((d) => d.tickets) || []}
                   labels={trendLabels}
-                  color="#888888"
+                  color="#ff8a00"
                   formatY={fmtN}
+                  height={130}
                 />
-              </SdcCard>
+              </AnalyticsBand>
             </div>
 
-            <div className="sdc-grid-3">
-              <SdcCard title="Event breakdown">
+            <div className="sdc-analytics-grid sdc-analytics-grid-3">
+              <AnalyticsBand title="Event breakdown" meta="Status mix">
                 <DonutChart segments={[
                   { label: 'Live', value: stats.live.length, color: '#4CAF50' },
-                  { label: 'Upcoming', value: stats.upcoming.length, color: '#AAAAAA' },
-                  { label: 'Past', value: stats.past.length, color: '#404040' },
+                  { label: 'Upcoming', value: stats.upcoming.length, color: '#f5b642' },
+                  { label: 'Past', value: stats.past.length, color: 'rgba(255,255,255,0.2)' },
                 ]} />
-              </SdcCard>
-              <SdcCard title="Top events · tickets">
+              </AnalyticsBand>
+              <AnalyticsBand title="Top events" meta="Tickets">
                 {topTickets.length ? topTickets.map((e) => (
                   <HBar key={e.id} label={e.title} value={e.bookedSpots || 0} maxValue={maxT} />
                 )) : <p className="sdc-empty">No events yet</p>}
-              </SdcCard>
-              <SdcCard title="Top events · revenue">
+              </AnalyticsBand>
+              <AnalyticsBand title="Top events" meta="Revenue">
                 {topRev.length ? topRev.map((e) => (
-                  <HBar key={e.id} label={e.title} value={e.revenue || 0} maxValue={maxR} color="#666666" display={fmt$(e.revenue || 0)} />
+                  <HBar key={e.id} label={e.title} value={e.revenue || 0} maxValue={maxR} color="#f5b642" display={fmt$(e.revenue || 0)} />
                 )) : <p className="sdc-empty">No events yet</p>}
-              </SdcCard>
+              </AnalyticsBand>
             </div>
 
-            <div className="sdc-grid-2">
-              <SdcCard title="Guest pulse">
-                <div className="sdc-hero-grid">
-                  <HeroStat label="Unique buyers" value={fmtN(guests.totalBuyers)} />
-                  <HeroStat label="Returning" value={fmtN(guestData.repeat)} />
-                  <HeroStat label="Check-in rate" value={`${guestData.checkInRate}%`} />
-                  <HeroStat label="Avg / event" value={events.length ? fmtN(Math.round(guests.totalTickets / events.length)) : '0'} />
+            <div className="sdc-analytics-grid sdc-analytics-grid-2">
+              <AnalyticsBand title="Guest pulse" meta="Audience">
+                <div className="sdc-analytics-stats sdc-analytics-stats--inline">
+                  <FloatStat label="Unique buyers" value={fmtN(guests.totalBuyers)} />
+                  <FloatStat label="Returning" value={fmtN(guestData.repeat)} />
+                  <FloatStat label="Check-in rate" value={`${guestData.checkInRate}%`} accent />
+                  <FloatStat label="Avg / event" value={events.length ? fmtN(Math.round(guests.totalTickets / events.length)) : '0'} />
                 </div>
-              </SdcCard>
-              <SdcCard title="Recent sales" meta={`${tickets.length} total`}>
+              </AnalyticsBand>
+              <AnalyticsBand title="Recent sales" meta={`${tickets.length} total`}>
                 {tickets.slice(0, 6).map((t) => (
-                  <div key={t.id} className="sdc-list-row">
+                  <div key={t.id} className="sdc-list-row sdc-list-row--bare">
                     <div>
                       <strong>{t.buyerName}</strong>
                       <span>{t.eventTitle} · {t.ticketType}</span>
                     </div>
-                    <span>{t.price === 0 ? 'Free' : fmt$(t.price)}</span>
+                    <span className="sdc-list-row-val">{t.price === 0 ? 'Free' : fmt$(t.price)}</span>
                   </div>
                 ))}
                 {!tickets.length && <p className="sdc-empty">No ticket sales yet</p>}
-              </SdcCard>
+              </AnalyticsBand>
             </div>
           </div>
         )}
@@ -310,103 +309,148 @@ export default function OrganizerDashboard() {
         )}
 
         {tab === 'events' && (
-          <div className="sdc-stack">
-            <div className="sdc-create-bar">
-              <button type="button" className="sdc-create-submit" onClick={() => { setCreatedEvent(null); setTab('create'); }}>
-                + Create event
-              </button>
+          <div className="sdc-events-screen">
+            <div className="sdc-events-topbar">
+              <div className="sdc-filter-pills">
+                {['all', 'upcoming', 'live', 'past'].map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    className={`sdc-filter${eventFilter === f ? ' active' : ''}`}
+                    onClick={() => setEventFilter(f)}
+                  >
+                    {f === 'past' ? 'Past' : f.charAt(0).toUpperCase() + f.slice(1)}
+                    {f === 'live' && stats.live.length > 0 && <span className="sdc-filter-dot" />}
+                  </button>
+                ))}
+              </div>
+              <span className="sdc-events-count">{filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''}</span>
             </div>
-            <div className="sdc-filter-pills">
-              {['all', 'upcoming', 'live', 'past'].map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  className={`sdc-filter${eventFilter === f ? ' active' : ''}`}
-                  onClick={() => setEventFilter(f)}
-                >
-                  {f === 'past' ? 'Past' : f.charAt(0).toUpperCase() + f.slice(1)}
-                  {f === 'live' && stats.live.length > 0 && <span className="sdc-filter-dot" />}
-                </button>
-              ))}
-            </div>
-            {events.length === 0 && (
+
+            {events.length === 0 ? (
               <div className="sdc-empty-card">
                 <h3>No events yet</h3>
-                <p>Create your first event here or in the Samba app — both stay in sync.</p>
-                <button type="button" className="sdc-create-submit" onClick={() => setTab('create')}>Create event</button>
+                <p>Create your first event in the Create tab or in the Samba app — both stay in sync.</p>
+              </div>
+            ) : filteredEvents.length === 0 ? (
+              <p className="sdc-empty">No events in this category</p>
+            ) : (
+              <div className="sdc-app-event-list">
+                {filteredEvents.map((e) => (
+                  <AppEventRow
+                    key={e.id}
+                    event={e}
+                    onToggleSales={() => updateEvent(e.id, { ticket_sales_open: !e.ticketSalesOpen })}
+                    onToggleExplore={() => updateEvent(e.id, { show_on_explore: !e.showOnExplore })}
+                    onStatusChange={(status) => updateEvent(e.id, { status })}
+                  />
+                ))}
               </div>
             )}
-            <div className="sdc-event-grid">
-              {filteredEvents.length ? filteredEvents.map((e) => (
-                <EventCard
-                  key={e.id}
-                  event={e}
-                  onToggleSales={() => updateEvent(e.id, { ticket_sales_open: !e.ticketSalesOpen })}
-                  onToggleExplore={() => updateEvent(e.id, { show_on_explore: !e.showOnExplore })}
-                />
-              )) : events.length > 0 ? <p className="sdc-empty">No events in this category</p> : null}
-            </div>
-            <SdcCard title="Event manager" meta="Full table view">
-              <div className="sdc-table-wrap">
-                <table className="sdc-table">
-                  <thead>
-                    <tr><th>Status</th><th>Event</th><th>Date</th><th>Sold</th><th>Revenue</th><th>Sales</th><th>Explore</th></tr>
-                  </thead>
-                  <tbody>
-                    {events.map((e) => (
-                      <tr key={e.id}>
-                        <td>
-                          <select className="sdc-select" value={e.status} onChange={(ev) => updateEvent(e.id, { status: ev.target.value })}>
-                            <option value="upcoming">upcoming</option>
-                            <option value="live">live</option>
-                            <option value="completed">completed</option>
-                          </select>
-                        </td>
-                        <td><Link href={getEventManagePath(e)}>{e.title}</Link><span className="sdc-sub">{e.venue}</span></td>
-                        <td>{e.dateLabel}</td>
-                        <td>{e.bookedSpots} / {e.totalSpots || '∞'}</td>
-                        <td>{fmt$(e.revenue || 0)}</td>
-                        <td><StatusBadge status={e.ticketSalesOpen ? 'live' : 'past'} /></td>
-                        <td><StatusBadge status={e.showOnExplore ? 'live' : 'past'} /></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </SdcCard>
           </div>
         )}
 
         {tab === 'payouts' && (
-          <div className="sdc-grid-2">
-            <SdcCard title="Available balance" className="sdc-payout-hero">
-              <p className="sdc-revenue-amount">{fmt$(payouts.balance)}</p>
-              <p className="sdc-revenue-label">Ready after platform fees</p>
-              <button type="button" className="sdc-withdraw-btn" disabled={payouts.balance <= 0}>Withdraw</button>
-            </SdcCard>
-            <SdcCard title="Earnings breakdown">
-              <div className="sdc-kv"><span>Gross revenue</span><strong>{fmt$(payouts.grossRevenue)}</strong></div>
-              <div className="sdc-kv"><span>Platform fee ({payouts.platformFeeRate * 100}%)</span><strong>-{fmt$(payouts.platformFees)}</strong></div>
-              <div className="sdc-kv"><span>Net earnings</span><strong>{fmt$(payouts.netEarnings)}</strong></div>
-              <div className="sdc-kv"><span>Paid out</span><strong>{fmt$(payouts.paidOut)}</strong></div>
-              <div className="sdc-kv total"><span>Balance</span><strong>{fmt$(payouts.balance)}</strong></div>
-            </SdcCard>
-            <SdcCard title="Payout status">
-              <div className="sdc-kv"><span>Verification</span><StatusBadge status={payouts.verificationStatus} /></div>
-              <div className="sdc-kv"><span>Stripe Connect</span><strong>{payouts.stripeConnected ? 'Connected' : 'Not connected'}</strong></div>
-              <p className="sdc-hint">Connect Stripe in the Samba app to enable live payouts.</p>
-            </SdcCard>
-            <SdcCard title="Fee structure">
-              <div className="sdc-fee-split">
-                <div><span>You keep</span><strong>90%</strong></div>
-                <div><span>Platform</span><strong>10%</strong></div>
+          <div className="sdc-stack">
+            {/* Hero */}
+            <section className="sdc-analytics-hero-wrap">
+              <div className="sdc-analytics-hero">
+                <div className="sdc-analytics-hero-main">
+                  <span className="sdc-analytics-kicker">Available balance</span>
+                  <p className="sdc-analytics-amount">{fmt$(payouts.balance)}</p>
+                  <p className="sdc-analytics-caption">Net earnings after Samba fees</p>
+                  <div className="sdc-analytics-stats">
+                    <FloatStat label="Gross revenue" value={fmt$(payouts.grossRevenue)} />
+                    <FloatStat label="Net earnings" value={fmt$(payouts.netEarnings)} />
+                    <FloatStat label="Paid out" value={fmt$(payouts.paidOut)} accent />
+                  </div>
+                  <button
+                    type="button"
+                    className="sdc-payout-withdraw-btn"
+                    disabled={payouts.balance <= 0}
+                  >
+                    Withdraw {fmt$(payouts.balance)}
+                  </button>
+                </div>
               </div>
-              <SectionLabel>All ticket sales · automatic deduction</SectionLabel>
-            </SdcCard>
+            </section>
+
+            <div className="sdc-analytics-grid sdc-analytics-grid-2">
+              {/* Earnings breakdown — no platform fee row */}
+              <AnalyticsBand title="Earnings breakdown">
+                <div className="sdc-payout-kv-list">
+                  <div className="sdc-payout-kv"><span>Gross revenue</span><strong>{fmt$(payouts.grossRevenue)}</strong></div>
+                  <div className="sdc-payout-kv"><span>Net earnings</span><strong>{fmt$(payouts.netEarnings)}</strong></div>
+                  <div className="sdc-payout-kv"><span>Paid out</span><strong>{fmt$(payouts.paidOut)}</strong></div>
+                  <div className="sdc-payout-kv sdc-payout-kv--total"><span>Balance</span><strong>{fmt$(payouts.balance)}</strong></div>
+                </div>
+              </AnalyticsBand>
+
+              {/* Connected account */}
+              <AnalyticsBand title="Connected account">
+                <div className="sdc-connected-account">
+                  <div className="sdc-connected-bank">
+                    <div className="sdc-connected-bank-icon">🏦</div>
+                    <div className="sdc-connected-bank-info">
+                      <strong>Chase Bank</strong>
+                      <span>Checking •••• 4821</span>
+                    </div>
+                    <span className="sdc-connected-badge">Active</span>
+                  </div>
+                  <div className="sdc-payout-kv-list" style={{ marginTop: 16 }}>
+                    <div className="sdc-payout-kv">
+                      <span>Verification</span>
+                      <StatusBadge status={payouts.verificationStatus} />
+                    </div>
+                    <div className="sdc-payout-kv">
+                      <span>Stripe Connect</span>
+                      <strong>{payouts.stripeConnected ? '✓ Connected' : 'Not connected'}</strong>
+                    </div>
+                    <div className="sdc-payout-kv">
+                      <span>Payout speed</span>
+                      <strong>2 business days</strong>
+                    </div>
+                  </div>
+                </div>
+                <p className="sdc-payout-hint">Manage your bank account in the Samba app.</p>
+              </AnalyticsBand>
+            </div>
+
+            {/* Per-event earnings */}
+            {events.length > 0 && (
+              <AnalyticsBand title="Revenue by event" meta={`${events.length} events`}>
+                {[...events]
+                  .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
+                  .map((e) => (
+                    <HBar
+                      key={e.id}
+                      label={e.title}
+                      value={e.revenue || 0}
+                      maxValue={Math.max(...events.map((ev) => ev.revenue || 0), 1)}
+                      color="#f5b642"
+                      display={fmt$(e.revenue || 0)}
+                    />
+                  ))}
+              </AnalyticsBand>
+            )}
+
+            {/* Recent ticket sales */}
+            <AnalyticsBand title="Recent sales" meta={`${tickets.length} total`}>
+              {tickets.slice(0, 8).map((t) => (
+                <div key={t.id} className="sdc-list-row sdc-list-row--bare">
+                  <div>
+                    <strong>{t.buyerName}</strong>
+                    <span>{t.eventTitle} · {t.ticketType}</span>
+                  </div>
+                  <span className="sdc-list-row-val">{t.price === 0 ? 'Free' : fmt$(t.price)}</span>
+                </div>
+              ))}
+              {!tickets.length && <p className="sdc-empty">No ticket sales yet</p>}
+            </AnalyticsBand>
           </div>
         )}
 
-        {tab === 'tickets' && (
+        {false && (
           <SdcCard title="All ticket sales" meta={`${tickets.length} tickets`}>
             <div className="sdc-table-wrap">
               <table className="sdc-table">
@@ -433,95 +477,21 @@ export default function OrganizerDashboard() {
           </SdcCard>
         )}
 
-        {tab === 'guests' && (
-          <div className="sdc-stack">
-            <div className="sdc-hero-grid sdc-hero-grid-4">
-              <HeroStat label="Unique buyers" value={fmtN(guests.totalBuyers)} />
-              <HeroStat label="Total tickets" value={fmtN(guests.totalTickets)} />
-              <HeroStat label="Returning guests" value={fmtN(guestData.repeat)} />
-              <HeroStat label="Check-in rate" value={`${guestData.checkInRate}%`} accent />
-            </div>
-            <div className="sdc-grid-2">
-              <SdcCard title="Ticket types">
-                {Object.keys(guests.ticketTypeBreakdown).length ? Object.entries(guests.ticketTypeBreakdown).map(([type, count]) => (
-                  <HBar key={type} label={type} value={count} maxValue={guests.totalTickets || 1} color="#666666" />
-                )) : <p className="sdc-empty">No data yet</p>}
-              </SdcCard>
-              <SdcCard title="Top returners">
-                {guestData.topReturners.length ? guestData.topReturners.map((b) => (
-                  <div key={b.email} className="sdc-list-row">
-                    <div><strong>{b.name}</strong><span>{b.email}</span></div>
-                    <span>{b.count} tickets · {b.events.size} events</span>
-                  </div>
-                )) : <p className="sdc-empty">No repeat buyers yet</p>}
-              </SdcCard>
-            </div>
-            <SdcCard title="All buyers" meta="Recent 50">
-              <div className="sdc-table-wrap">
-                <table className="sdc-table">
-                  <thead><tr><th>Name</th><th>Email</th><th>Event</th><th>Ticket</th><th>Price</th></tr></thead>
-                  <tbody>
-                    {tickets.slice(0, 50).map((t) => (
-                      <tr key={t.id}>
-                        <td>{t.buyerName}</td>
-                        <td>{t.buyerEmail}</td>
-                        <td>{t.eventTitle}</td>
-                        <td>{t.ticketType}</td>
-                        <td>{t.price === 0 ? 'Free' : fmt$(t.price)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </SdcCard>
-          </div>
-        )}
 
         {tab === 'settings' && (
-          <div className="sdc-stack">
-            <SdcCard className="sdc-profile-hero">
-              <div className="sdc-profile-head">
-                <DashboardAvatar url={getAvatarUrl(profile, user)} name={orgName} size="lg" />
-                <div>
-                  <h2>{profile?.providerInfo?.organizationName || profile?.name || orgName}</h2>
-                  {profile?.providerInfo?.description && <p>{profile.providerInfo.description}</p>}
-                  <div className="sdc-profile-tags">
-                    <StatusBadge status={payouts.verificationStatus} />
-                    <span className="sdc-tag">{profile?.role}</span>
-                  </div>
-                </div>
-              </div>
-            </SdcCard>
-            <div className="sdc-grid-2">
-              <SdcCard title="Organization">
-                <div className="sdc-kv"><span>Organization</span><strong>{profile?.providerInfo?.organizationName || '—'}</strong></div>
-                <div className="sdc-kv"><span>Contact email</span><strong>{profile?.providerInfo?.partyEmail || profile?.email || '—'}</strong></div>
-                <div className="sdc-kv"><span>Phone</span><strong>{profile?.providerInfo?.partyPhone || profile?.phoneNumber || '—'}</strong></div>
-                <div className="sdc-kv"><span>Website</span><strong>{profile?.providerInfo?.website || '—'}</strong></div>
-                <div className="sdc-kv"><span>Business address</span><strong>{formatAddress(profile?.providerInfo?.businessAddress) || '—'}</strong></div>
-              </SdcCard>
-              <SdcCard title="Personal">
-                <div className="sdc-kv"><span>Name</span><strong>{profile?.name || '—'}</strong></div>
-                <div className="sdc-kv"><span>Account email</span><strong>{profile?.email || '—'}</strong></div>
-                <div className="sdc-kv"><span>Phone</span><strong>{profile?.phoneNumber || '—'}</strong></div>
-                <div className="sdc-kv"><span>Date of birth</span><strong>{profile?.dateOfBirth || '—'}</strong></div>
-                <div className="sdc-kv"><span>Address</span><strong>{formatAddress(profile?.address) || '—'}</strong></div>
-              </SdcCard>
-              <SdcCard title="Verification">
-                <div className="sdc-kv"><span>Status</span><StatusBadge status={payouts.verificationStatus} /></div>
-                <div className="sdc-kv"><span>Stripe</span><strong>{payouts.stripeConnected ? 'Connected' : 'Not connected'}</strong></div>
-                <div className="sdc-kv"><span>Tax info</span><strong>{profile?.providerInfo?.taxInfo ? 'On file' : 'Not submitted'}</strong></div>
-                <div className="sdc-kv"><span>Bank account</span><strong>{profile?.providerInfo?.bankAccountInfo ? 'On file' : 'Not submitted'}</strong></div>
-                <div className="sdc-kv"><span>ID verification</span><strong>{profile?.providerInfo?.identityVerification ? 'Submitted' : 'Not submitted'}</strong></div>
-              </SdcCard>
-              <SdcCard title="Account">
-                <div className="sdc-kv"><span>User ID</span><strong className="mono">{profile?.id}</strong></div>
-                <div className="sdc-kv"><span>Role</span><strong>{profile?.role}</strong></div>
-                <div className="sdc-kv"><span>Member since</span><strong>{profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : '—'}</strong></div>
-                <div className="sdc-kv"><span>Last updated</span><strong>{profile?.updatedAt ? new Date(profile.updatedAt).toLocaleDateString() : '—'}</strong></div>
-              </SdcCard>
-            </div>
-          </div>
+          <SettingsPanel
+            profile={{ ...profile, avatar: getAvatarUrl(profile, user) }}
+            user={user}
+            organizerId={activeOrganizerId}
+            impersonation={impersonation}
+            payouts={payouts}
+            onSaved={(text) => {
+              setActionMsg(text);
+              refresh();
+              setTimeout(() => setActionMsg(''), 3000);
+            }}
+            onError={setActionMsg}
+          />
         )}
       </DashboardLayout>
     </div>

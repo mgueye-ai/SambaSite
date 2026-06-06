@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { apiFetch, apiUpload } from '../lib/api-client';
-import { DashboardAvatar } from './dashboard/ui';
+import AddressAutocomplete from './AddressAutocomplete';
 
 const EMPTY_TICKET = () => ({
   type: 'General Admission',
@@ -87,6 +87,7 @@ export default function CreateEventForm({
   const [city, setCity] = useState(initial?.city || '');
   const [state, setState] = useState(initial?.state || '');
   const [zipCode, setZipCode] = useState(initial?.zipCode || '');
+  const [coordinates, setCoordinates] = useState(initialEvent?.address?.coordinates || null);
   const [description, setDescription] = useState(initial?.description || '');
   const [showOnExplore, setShowOnExplore] = useState(initial?.showOnExplore ?? true);
   const [coverPreview, setCoverPreview] = useState(initial?.coverPreview || '');
@@ -95,31 +96,39 @@ export default function CreateEventForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [tickets, setTickets] = useState(initial?.tickets || [EMPTY_TICKET()]);
+  const [activeTicketIdx, setActiveTicketIdx] = useState(0);
 
-  const orgName = profile?.providerInfo?.organizationName || profile?.name || user?.name || 'Organizer';
-  const avatarUrl = profile?.avatar || profile?.providerInfo?.partyLogo || user?.profilePicture;
-
-  const updateTicket = (index, field, value) => {
+  const updateTicket = (index, field, value) =>
     setTickets((prev) => prev.map((t, i) => (i === index ? { ...t, [field]: value } : t)));
-  };
 
-  const addTicket = () => setTickets((prev) => [...prev, EMPTY_TICKET()]);
-  const removeTicket = (index) => setTickets((prev) => prev.filter((_, i) => i !== index));
+  const addTicket = () => setTickets((prev) => {
+    const next = [...prev, EMPTY_TICKET()];
+    setActiveTicketIdx(next.length - 1);
+    return next;
+  });
 
-  const updateInclude = (tIndex, iIndex, value) => {
-    setTickets((prev) => prev.map((t, i) => {
-      if (i !== tIndex) return t;
-      const includes = [...(t.includes || [])];
-      includes[iIndex] = value;
-      return { ...t, includes };
-    }));
-  };
+  const removeTicket = (index) => setTickets((prev) => {
+    const next = prev.filter((_, i) => i !== index);
+    setActiveTicketIdx((ai) => Math.min(ai, Math.max(0, next.length - 1)));
+    return next;
+  });
 
-  const addInclude = (tIndex) => {
-    setTickets((prev) => prev.map((t, i) => (
-      i === tIndex ? { ...t, includes: [...(t.includes || []), ''] } : t
-    )));
-  };
+  const updateInclude = (tIndex, iIndex, value) => setTickets((prev) => prev.map((t, i) => {
+    if (i !== tIndex) return t;
+    const includes = [...(t.includes || [])];
+    includes[iIndex] = value;
+    return { ...t, includes };
+  }));
+
+  const addInclude = (tIndex) => setTickets((prev) => prev.map((t, i) =>
+    i === tIndex ? { ...t, includes: [...(t.includes || []), ''] } : t,
+  ));
+
+  const removeInclude = (tIndex, iIndex) => setTickets((prev) => prev.map((t, i) => {
+    if (i !== tIndex) return t;
+    const includes = (t.includes || []).filter((_, j) => j !== iIndex);
+    return { ...t, includes: includes.length ? includes : [''] };
+  }));
 
   const handleCoverPick = async (e) => {
     const file = e.target.files?.[0];
@@ -139,11 +148,18 @@ export default function CreateEventForm({
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleCreate = async () => {
+    if (!title.trim()) return setError('Enter an event title');
+    if (!venue.trim()) return setError('Enter a venue name');
+    if (!street.trim()) return setError('Enter a street address');
+    for (const t of tickets) {
+      if (!t.type.trim()) return setError('Every ticket needs a name');
+      if (!t.isFree && !t.price) return setError('Set a price or mark ticket as free');
+      if (!t.isUnlimited && !t.quantity) return setError('Set ticket quantity or mark unlimited');
+    }
+
     setError('');
     setSubmitting(true);
-
     try {
       const payload = {
         organizerId,
@@ -153,7 +169,7 @@ export default function CreateEventForm({
         endTime: hasEndTime ? combineDateTime(date, endTime) : null,
         hasEndTime,
         venue,
-        address: { street, city, state, zipCode },
+        address: { street, city, state, zipCode, coordinates },
         description,
         showOnExplore,
         coverImage: coverUrl,
@@ -181,97 +197,57 @@ export default function CreateEventForm({
     }
   };
 
+  const ai = Math.min(activeTicketIdx, tickets.length - 1);
+  const ticket = tickets[ai];
+
   return (
-    <form className="sdc-create" onSubmit={handleSubmit}>
+    <form className="sdc-create" onSubmit={(e) => e.preventDefault()}>
       <div className="sdc-create-layout">
-        <aside className="sdc-create-preview">
+
+        {/* ── LEFT: cover + identity ── */}
+        <aside className="sdc-create-left">
           <div className="sdc-create-cover">
             <label className="sdc-create-cover-label">
-              {coverPreview ? (
-                <img src={coverPreview} alt="" className="sdc-create-cover-img" />
-              ) : (
-                <span className="sdc-create-cover-empty">
-                  {uploading ? 'Uploading...' : 'Add cover image'}
-                </span>
-              )}
+              {coverPreview
+                ? <img src={coverPreview} alt="" className="sdc-create-cover-img" />
+                : <span className="sdc-create-cover-empty">{uploading ? 'Uploading…' : 'Tap to add cover'}</span>}
               <input type="file" accept="image/*" onChange={handleCoverPick} hidden />
             </label>
             {coverPreview && (
               <label className="sdc-create-cover-edit">
-                Change image
+                Change
                 <input type="file" accept="image/*" onChange={handleCoverPick} hidden />
               </label>
             )}
           </div>
 
-          <div className="sdc-create-host">
-            <DashboardAvatar url={avatarUrl} name={orgName} size="sm" />
-            <div>
-              <p className="sdc-create-host-label">Hosted by</p>
-              <p className="sdc-create-host-name">{orgName}</p>
-            </div>
-          </div>
-
-          <div className="sdc-create-live-preview">
-            <p className="sdc-section-label">Preview</p>
-            <h3>{title.trim() || 'Event Title'}</h3>
-            <p>{venue.trim() || 'Venue'} · {date} · {startTime}</p>
-            {description && <p className="sdc-create-preview-desc">{description.slice(0, 120)}{description.length > 120 ? '…' : ''}</p>}
-          </div>
-        </aside>
-
-        <div className="sdc-create-fields">
-          <section className="sdc-create-section">
-            <h2>Event basics</h2>
+          <div className="sdc-create-identity">
+            <input
+              className="sdc-create-title-input"
+              type="text"
+              value={title}
+              onChange={(ev) => setTitle(ev.target.value)}
+              placeholder="Event name"
+            />
             <label className="sdc-field">
-              <span>Event title</span>
-              <input
-                type="text"
-                value={title}
-                onChange={(ev) => setTitle(ev.target.value)}
-                placeholder="Summer Rooftop Party"
-                required
-              />
-            </label>
-          </section>
-
-          <section className="sdc-create-section">
-            <h2>Date & time</h2>
-            <div className="sdc-field-row">
-              <label className="sdc-field">
-                <span>Date</span>
-                <input type="date" value={date} onChange={(ev) => setDate(ev.target.value)} required />
-              </label>
-              <label className="sdc-field">
-                <span>Start time</span>
-                <input type="time" value={startTime} onChange={(ev) => setStartTime(ev.target.value)} required />
-              </label>
-            </div>
-            <label className="sdc-check">
-              <input
-                type="checkbox"
-                checked={hasEndTime}
-                onChange={(ev) => setHasEndTime(ev.target.checked)}
-              />
-              <span>Set end time</span>
-            </label>
-            {hasEndTime && (
-              <label className="sdc-field">
-                <span>End time</span>
-                <input type="time" value={endTime} onChange={(ev) => setEndTime(ev.target.value)} />
-              </label>
-            )}
-          </section>
-
-          <section className="sdc-create-section">
-            <h2>Location</h2>
-            <label className="sdc-field">
-              <span>Venue name</span>
-              <input type="text" value={venue} onChange={(ev) => setVenue(ev.target.value)} placeholder="The Grand Hall" required />
+              <span>Venue</span>
+              <input type="text" value={venue} onChange={(ev) => setVenue(ev.target.value)} placeholder="The Grand Hall" />
             </label>
             <label className="sdc-field">
               <span>Street address</span>
-              <input type="text" value={street} onChange={(ev) => setStreet(ev.target.value)} placeholder="123 Main St" required />
+              <AddressAutocomplete
+                value={street}
+                onChange={setStreet}
+                onSelect={(addr) => {
+                  if (addr.street) setStreet(addr.street);
+                  if (addr.city) setCity(addr.city);
+                  if (addr.state) setState(addr.state);
+                  if (addr.zipCode) setZipCode(addr.zipCode);
+                  if (addr.venue && !venue.trim()) setVenue(addr.venue);
+                  setCoordinates(addr.coordinates || null);
+                }}
+                placeholder="123 Main St"
+              />
             </label>
             <div className="sdc-field-row sdc-field-row-3">
               <label className="sdc-field">
@@ -287,135 +263,167 @@ export default function CreateEventForm({
                 <input type="text" value={zipCode} onChange={(ev) => setZipCode(ev.target.value)} />
               </label>
             </div>
+          </div>
+        </aside>
+
+        {/* ── RIGHT: everything else ── */}
+        <div className="sdc-create-right">
+
+          {/* Date & time */}
+          <section className="sdc-create-section-block">
+            <p className="sdc-create-section-label">Date &amp; time</p>
+            <div className="sdc-field-row">
+              <label className="sdc-field">
+                <span>Date</span>
+                <input type="date" value={date} onChange={(ev) => setDate(ev.target.value)} />
+              </label>
+              <label className="sdc-field">
+                <span>Start time</span>
+                <input type="time" value={startTime} onChange={(ev) => setStartTime(ev.target.value)} />
+              </label>
+            </div>
+            <label className="sdc-check">
+              <input type="checkbox" checked={hasEndTime} onChange={(ev) => setHasEndTime(ev.target.checked)} />
+              <span>Set end time</span>
+            </label>
+            {hasEndTime && (
+              <label className="sdc-field" style={{ marginTop: 10 }}>
+                <span>End time</span>
+                <input type="time" value={endTime} onChange={(ev) => setEndTime(ev.target.value)} />
+              </label>
+            )}
           </section>
 
-          <section className="sdc-create-section">
-            <h2>Description</h2>
-            <label className="sdc-field">
-              <span>About this event</span>
+          {/* Description */}
+          <section className="sdc-create-section-block">
+            <p className="sdc-create-section-label">About this event</p>
+            <div className="sdc-lined-field-wrap">
               <textarea
-                rows={5}
+                className="sdc-lined-textarea"
                 value={description}
                 onChange={(ev) => setDescription(ev.target.value)}
-                placeholder="Tell guests what to expect..."
+                placeholder="Tell guests what to expect…"
+                rows={7}
               />
-            </label>
-            <label className="sdc-check">
-              <input
-                type="checkbox"
-                checked={showOnExplore}
-                onChange={(ev) => setShowOnExplore(ev.target.checked)}
-              />
-              <span>Show on Explore page</span>
-            </label>
+              <div className="sdc-lined-field-lines" aria-hidden="true" />
+            </div>
           </section>
 
-          <section className="sdc-create-section">
-            <div className="sdc-create-section-head">
-              <h2>Tickets</h2>
-              <button type="button" className="sdc-link-btn" onClick={addTicket}>+ Add ticket type</button>
+          {/* Tickets */}
+          <section className="sdc-create-section-block">
+            <div className="sdc-ticket-selector">
+              <p className="sdc-create-section-label" style={{ flex: 1 }}>Tickets</p>
+              <div className="sdc-ticket-select-wrap">
+                <select className="sdc-ticket-select" value={ai} onChange={(ev) => setActiveTicketIdx(Number(ev.target.value))}>
+                  {tickets.map((t, i) => (
+                    <option key={i} value={i}>{t.type || `Ticket ${i + 1}`}</option>
+                  ))}
+                </select>
+              </div>
+              <button type="button" className="sdc-link-btn" onClick={addTicket}>+ Add</button>
+              {tickets.length > 1 && (
+                <button type="button" className="sdc-ticket-remove-btn" onClick={() => removeTicket(ai)}>Remove</button>
+              )}
             </div>
 
-            {tickets.map((ticket, index) => (
-              <div key={index} className="sdc-ticket-card">
-                <div className="sdc-ticket-card-head">
-                  <label className="sdc-field sdc-field-grow">
-                    <span>Ticket name</span>
+            <div className="sdc-ticket-row">
+              {/* Left: ticket card */}
+              <div className="sdc-ticket-shaped" style={{ '--ticket-notch-y': '86px' }}>
+                <div className="sdc-ticket-stub">
+                  <div className="sdc-ticket-stub-left">
+                    <span className="sdc-ticket-eyebrow">Ticket type</span>
                     <input
+                      className="sdc-ticket-name-input"
                       type="text"
                       value={ticket.type}
-                      onChange={(ev) => updateTicket(index, 'type', ev.target.value)}
+                      onChange={(ev) => updateTicket(ai, 'type', ev.target.value)}
                       placeholder="General Admission"
-                      required
                     />
-                  </label>
-                  {tickets.length > 1 && (
-                    <button type="button" className="sdc-ticket-remove" onClick={() => removeTicket(index)}>Remove</button>
-                  )}
+                  </div>
                 </div>
-
-                <div className="sdc-field-row">
-                  <label className="sdc-check">
-                    <input
-                      type="checkbox"
-                      checked={ticket.isFree}
-                      onChange={(ev) => updateTicket(index, 'isFree', ev.target.checked)}
-                    />
-                    <span>Free ticket</span>
-                  </label>
-                  <label className="sdc-check">
-                    <input
-                      type="checkbox"
-                      checked={ticket.isUnlimited}
-                      onChange={(ev) => updateTicket(index, 'isUnlimited', ev.target.checked)}
-                    />
-                    <span>Unlimited quantity</span>
-                  </label>
-                </div>
-
-                <div className="sdc-field-row">
-                  {!ticket.isFree && (
+                <div className="sdc-ticket-perf" />
+                <div className="sdc-ticket-body">
+                  <div className="sdc-field-row">
+                    <label className="sdc-check">
+                      <input type="checkbox" checked={ticket.isFree} onChange={(ev) => updateTicket(ai, 'isFree', ev.target.checked)} />
+                      <span>Free</span>
+                    </label>
+                    <label className="sdc-check">
+                      <input type="checkbox" checked={ticket.isUnlimited} onChange={(ev) => updateTicket(ai, 'isUnlimited', ev.target.checked)} />
+                      <span>Unlimited qty</span>
+                    </label>
+                  </div>
+                  <div className="sdc-ticket-price-row">
                     <label className="sdc-field">
                       <span>Price ($)</span>
                       <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={ticket.price}
-                        onChange={(ev) => updateTicket(index, 'price', ev.target.value)}
+                        type="text"
+                        value={ticket.isFree ? '0' : ticket.price}
+                        onChange={(ev) => !ticket.isFree && updateTicket(ai, 'price', ev.target.value)}
                         placeholder="25"
+                        readOnly={ticket.isFree}
+                        className={ticket.isFree ? 'sdc-field-locked' : ''}
                       />
                     </label>
-                  )}
-                  {!ticket.isUnlimited && (
                     <label className="sdc-field">
                       <span>Quantity</span>
                       <input
-                        type="number"
-                        min="1"
-                        value={ticket.quantity}
-                        onChange={(ev) => updateTicket(index, 'quantity', ev.target.value)}
+                        type="text"
+                        value={ticket.isUnlimited ? '∞' : ticket.quantity}
+                        onChange={(ev) => !ticket.isUnlimited && updateTicket(ai, 'quantity', ev.target.value)}
                         placeholder="100"
+                        readOnly={ticket.isUnlimited}
+                        className={ticket.isUnlimited ? 'sdc-field-locked' : ''}
                       />
                     </label>
-                  )}
-                </div>
-
-                <label className="sdc-field">
-                  <span>Special instructions (optional)</span>
-                  <input
-                    type="text"
-                    value={ticket.instructions}
-                    onChange={(ev) => updateTicket(index, 'instructions', ev.target.value)}
-                    placeholder="21+ only, ID required at door"
-                  />
-                </label>
-
-                <div className="sdc-includes">
-                  <span className="sdc-field-label">What&apos;s included</span>
-                  {(ticket.includes || []).map((item, iIndex) => (
-                    <input
-                      key={iIndex}
-                      type="text"
-                      value={item}
-                      onChange={(ev) => updateInclude(index, iIndex, ev.target.value)}
-                      placeholder="Entry, welcome drink..."
-                    />
-                  ))}
-                  <button type="button" className="sdc-link-btn" onClick={() => addInclude(index)}>+ Add item</button>
+                  </div>
+                  <label className="sdc-field">
+                    <span>Special instructions (optional)</span>
+                    <input type="text" value={ticket.instructions} onChange={(ev) => updateTicket(ai, 'instructions', ev.target.value)} placeholder="21+ only, ID required at door" />
+                  </label>
                 </div>
               </div>
-            ))}
+
+              {/* Right: what's included */}
+              <div className="sdc-ticket-includes-panel">
+                <p className="sdc-ticket-includes-label">What&apos;s included</p>
+                <ul className="sdc-ticket-includes-list">
+                  {(ticket.includes || []).map((item, iIndex) => (
+                    <li key={iIndex} className="sdc-ticket-include-item">
+                      <span className="sdc-ticket-include-bullet">—</span>
+                      <input
+                        type="text"
+                        value={item}
+                        onChange={(ev) => updateInclude(ai, iIndex, ev.target.value)}
+                        placeholder="e.g. Entry, welcome drink…"
+                      />
+                      {(ticket.includes.length > 1 || item) && (
+                        <button type="button" className="sdc-include-remove" onClick={() => removeInclude(ai, iIndex)} aria-label="Remove">×</button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                <button type="button" className="sdc-link-btn" onClick={() => addInclude(ai)}>+ Add item</button>
+              </div>
+            </div>
           </section>
 
-          {error && <p className="sdc-create-error">{error}</p>}
-
-          <div className="sdc-create-actions">
-            <button type="button" className="sdc-create-cancel" onClick={onCancel}>Cancel</button>
-            <button type="submit" className="sdc-create-submit" disabled={submitting || uploading}>
-              {submitting ? (isEdit ? 'Saving...' : 'Creating...') : (isEdit ? 'Save changes' : 'Create event')}
+          {/* Options + Submit */}
+          <section className="sdc-create-section-block sdc-create-footer">
+            <label className="sdc-check">
+              <input type="checkbox" checked={showOnExplore} onChange={(ev) => setShowOnExplore(ev.target.checked)} />
+              <span>Show on Explore page</span>
+            </label>
+            {error && <p className="sdc-create-error">{error}</p>}
+            <button
+              type="button"
+              className="sdc-create-submit"
+              onClick={handleCreate}
+              disabled={submitting || uploading}
+            >
+              {submitting ? (isEdit ? 'Saving…' : 'Creating…') : (isEdit ? 'Save changes' : 'Create event')}
             </button>
-          </div>
+          </section>
         </div>
       </div>
     </form>

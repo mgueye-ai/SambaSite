@@ -1,6 +1,7 @@
 import { Inter, Fraunces } from 'next/font/google';
 import './globals.css';
 import './theme.css';
+import './dashboard-theme.css';
 
 const inter = Inter({
   subsets: ['latin'],

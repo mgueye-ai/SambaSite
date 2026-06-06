@@ -22,6 +22,7 @@ export default function DashboardLayout({
   onSignOut,
   children,
   toast,
+  contentClassName = '',
 }) {
   return (
     <div className={`sdc-layout sdc-${variant}`}>
@@ -78,38 +79,27 @@ export default function DashboardLayout({
               <h1 className="sdc-lip-title">{title}</h1>
               {subtitle && <p className="sdc-lip-sub">{subtitle}</p>}
             </div>
-            {headerStats && (
+            {balance != null && (
               <div className="sdc-lip-stats">
-                {headerStats.map((s) => (
-                  <div key={s.label} className="sdc-lip-stat">
-                    <span>{s.label}</span>
-                    <strong>{s.value}</strong>
+                <div className="sdc-lip-stat">
+                  <span>Balance</span>
+                  <strong>{balance}</strong>
+                </div>
+                {processing != null && (
+                  <div className="sdc-lip-stat">
+                    <span>Processing</span>
+                    <strong>{processing}</strong>
                   </div>
-                ))}
+                )}
+                <button type="button" className="sdc-withdraw-btn" disabled>Withdraw</button>
               </div>
             )}
           </div>
-
-          {balance != null && (
-            <div className="sdc-balance-strip">
-              <div>
-                <p className="sdc-balance-label">Available balance</p>
-                <p className="sdc-balance-amount">{balance}</p>
-              </div>
-              {processing != null && (
-                <div className="sdc-balance-processing">
-                  <span>Processing</span>
-                  <strong>{processing}</strong>
-                </div>
-              )}
-              <button type="button" className="sdc-withdraw-btn" disabled>Withdraw</button>
-            </div>
-          )}
         </header>
 
         {toast && <div className="sdc-toast">{toast}</div>}
 
-        <div className="sdc-content">
+        <div className={`sdc-content${contentClassName ? ` ${contentClassName}` : ''}`}>
           {children}
         </div>
       </div>

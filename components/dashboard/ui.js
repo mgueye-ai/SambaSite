@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import Link from 'next/link';
 import { getEventManagePath } from '../../lib/event-manage';
 
@@ -35,7 +36,7 @@ function toPoints(data, w, h, pad = 4) {
   }));
 }
 
-export function Sparkline({ data, width = 280, height = 54, color = '#AAAAAA' }) {
+export function Sparkline({ data, width = 280, height = 54, color = '#f5b642' }) {
   if (!data?.length || data.length < 2) return null;
   const pts = toPoints(data, width, height);
   const line = smoothPath(pts);
@@ -57,7 +58,9 @@ export function Sparkline({ data, width = 280, height = 54, color = '#AAAAAA' })
   );
 }
 
-export function AreaChart({ data, labels, width = 560, height = 160, color = '#AAAAAA', formatY = fmt$ }) {
+export function AreaChart({ data, labels, width = 560, height = 160, color = '#f5b642', formatY = fmt$ }) {
+  const gradId = useId().replace(/:/g, '');
+
   if (!data?.length || data.length < 2) {
     return <p className="sdc-empty-chart">Not enough data yet</p>;
   }
@@ -72,33 +75,35 @@ export function AreaChart({ data, labels, width = 560, height = 160, color = '#A
   }));
   const line = smoothPath(pts);
   const area = `${line} L ${pts[pts.length - 1].x.toFixed(1)} ${inner.t + ch} L ${pts[0].x.toFixed(1)} ${inner.t + ch} Z`;
-  const ticks = [0, 0.5, 1].map((f) => ({ v: f * max, y: inner.t + (1 - f) * ch }));
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => ({ v: f * max, y: inner.t + (1 - f) * ch }));
   const labelIdx = labels ? [0, Math.floor(labels.length / 2), labels.length - 1] : [];
+  const last = pts[pts.length - 1];
 
   return (
     <svg width="100%" viewBox={`0 0 ${width} ${height}`} className="sdc-area-chart" preserveAspectRatio="none" aria-hidden>
       <defs>
-        <linearGradient id="sdcAreaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor={color} stopOpacity="0.28" />
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={color} stopOpacity="0.22" />
           <stop offset="1" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
       {ticks.map((t, i) => (
         <g key={i}>
-          <line x1={inner.l} y1={t.y} x2={inner.l + cw} y2={t.y} stroke="rgba(255,255,255,0.07)" />
-          <text x={inner.l - 6} y={t.y + 4} fontSize="9" fill="rgba(255,255,255,0.35)" textAnchor="end">
+          <line x1={inner.l} y1={t.y} x2={inner.l + cw} y2={t.y} stroke="rgba(245,182,66,0.08)" />
+          <text x={inner.l - 6} y={t.y + 4} fontSize="9" fill="rgba(255,255,255,0.3)" textAnchor="end">
             {formatY(t.v)}
           </text>
         </g>
       ))}
+      <line x1={inner.l} y1={inner.t + ch} x2={inner.l + cw} y2={inner.t + ch} stroke="rgba(245,182,66,0.2)" />
       {labelIdx.map((i) => (
-        <text key={i} x={pts[i]?.x ?? 0} y={height - 6} fontSize="9" fill="rgba(255,255,255,0.35)" textAnchor="middle">
+        <text key={i} x={pts[i]?.x ?? 0} y={height - 6} fontSize="9" fill="rgba(255,255,255,0.3)" textAnchor="middle">
           {labels[i]?.slice(5) || ''}
         </text>
       ))}
-      <path d={area} fill="url(#sdcAreaGrad)" />
-      <path d={line} stroke={color} strokeWidth="2" fill="none" strokeLinecap="round" />
-      <circle cx={pts[pts.length - 1].x} cy={pts[pts.length - 1].y} r="4" fill={color} />
+      <path d={area} fill={`url(#${gradId})`} />
+      <path d={line} stroke={color} strokeWidth="1.5" fill="none" strokeLinecap="butt" />
+      <rect x={last.x - 3} y={last.y - 3} width="6" height="6" fill={color} />
     </svg>
   );
 }
@@ -150,7 +155,7 @@ export function DonutChart({ segments, size = 140 }) {
   );
 }
 
-export function BarChart({ data, labels, width = 560, height = 120, color = '#666666' }) {
+export function BarChart({ data, labels, width = 560, height = 120, color = '#f5b642' }) {
   if (!data?.length) return <p className="sdc-empty-chart">Not enough data yet</p>;
   const max = Math.max(...data, 1);
   const pad = { l: 12, r: 12, t: 8, b: 24 };
@@ -167,7 +172,7 @@ export function BarChart({ data, labels, width = 560, height = 120, color = '#66
         const y = pad.t + ch - barH;
         return (
           <g key={i}>
-            <rect x={x} y={y} width={barW} height={barH} rx={3} fill={color} opacity={i === data.length - 1 ? 1 : 0.65} />
+            <rect x={x} y={y} width={barW} height={barH} fill={color} opacity={i === data.length - 1 ? 1 : 0.65} />
             {labels?.[i] && (
               <text x={x + barW / 2} y={height - 6} fontSize="9" fill="rgba(255,255,255,0.35)" textAnchor="middle">
                 {labels[i]}
@@ -180,7 +185,7 @@ export function BarChart({ data, labels, width = 560, height = 120, color = '#66
   );
 }
 
-export function HBar({ label, value, maxValue, color = '#666666', display }) {
+export function HBar({ label, value, maxValue, color = '#f5b642', display }) {
   const pct = maxValue > 0 ? (value / maxValue) * 100 : 0;
   return (
     <div className="sdc-hbar">
@@ -204,6 +209,30 @@ export function HeroStat({ label, value, sub, accent }) {
       <span className="sdc-hero-stat-label">{label}</span>
       {sub && <span className="sdc-hero-stat-sub">{sub}</span>}
     </div>
+  );
+}
+
+export function FloatStat({ label, value, sub, accent }) {
+  return (
+    <div className={`sdc-float-stat${accent ? ' accent' : ''}`}>
+      <span className="sdc-float-stat-val">{value}</span>
+      <span className="sdc-float-stat-label">{label}</span>
+      {sub && <span className="sdc-float-stat-sub">{sub}</span>}
+    </div>
+  );
+}
+
+export function AnalyticsBand({ title, meta, children, className = '' }) {
+  return (
+    <section className={`sdc-analytics-band${className ? ` ${className}` : ''}`}>
+      {(title || meta) && (
+        <div className="sdc-analytics-band-head">
+          {title && <h3>{title}</h3>}
+          {meta && <span>{meta}</span>}
+        </div>
+      )}
+      {children}
+    </section>
   );
 }
 
@@ -251,6 +280,53 @@ export function DashboardAvatar({ url, name, size = 'md' }) {
   const initials = (name || 'OR').split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
   if (url) return <img src={url} alt="" className={`sdc-avatar sdc-avatar-${size}`} />;
   return <span className={`sdc-avatar sdc-avatar-${size} sdc-avatar-ph`}>{initials}</span>;
+}
+
+export function AppEventRow({ event, onToggleSales, onToggleExplore, onStatusChange }) {
+  const cover = event.coverImage;
+  const managePath = getEventManagePath(event);
+  const publicPath = `/events/${event.id}`;
+  const soldPct = event.totalSpots > 0 ? Math.min(100, Math.round((event.bookedSpots / event.totalSpots) * 100)) : 0;
+
+  return (
+    <article className={`sdc-app-event-row sdc-event-${event.status}`}>
+      <Link href={managePath} className="sdc-app-event-cover">
+        {cover
+          ? <img src={cover} alt="" />
+          : <span className="sdc-app-event-cover-ph">{event.title?.[0]}</span>}
+      </Link>
+
+      <div className="sdc-app-event-body">
+        <div className="sdc-app-event-top">
+          <div className="sdc-app-event-info">
+            <StatusBadge status={event.status} />
+            <h3 className="sdc-app-event-title">{event.title}</h3>
+            <p className="sdc-app-event-meta">{event.dateLabel}{event.venue ? ` · ${event.venue}` : ''}</p>
+          </div>
+          <div className="sdc-app-event-nums">
+            <div className="sdc-app-stat">
+              <strong>{event.bookedSpots || 0}</strong>
+              <span>sold{event.totalSpots ? ` / ${event.totalSpots}` : ''}</span>
+            </div>
+            <div className="sdc-app-stat">
+              <strong>{fmt$(event.revenue || 0)}</strong>
+              <span>revenue</span>
+            </div>
+          </div>
+        </div>
+
+        {event.totalSpots > 0 && (
+          <div className="sdc-app-event-bar">
+            <div className="sdc-app-event-bar-fill" style={{ width: `${soldPct}%` }} />
+          </div>
+        )}
+
+        <div className="sdc-app-event-actions">
+          <Link href={managePath} className="sdc-link-btn">Manage</Link>
+        </div>
+      </div>
+    </article>
+  );
 }
 
 export function EventCard({ event, onToggleSales, onToggleExplore }) {

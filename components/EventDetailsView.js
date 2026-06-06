@@ -7,6 +7,60 @@ import { formatCount } from '../lib/formatNumbers';
 import { getTicketAvailability } from '../lib/events';
 import { SITE_URL } from '../lib/config';
 
+/* ─── Desktop two-column event page ─── */
+function DesktopEventPage({ event, children }) {
+  const cover = event.coverImage;
+  const organizerName =
+    typeof event.organizer === 'string'
+      ? event.organizer
+      : event.organizer?.name || 'Event Organizer';
+  const profilePicture = typeof event.organizer === 'object' ? event.organizer?.profilePicture : null;
+  const initials = organizerName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+
+  return (
+    <div className="edp-page">
+      {/* Gold orbs */}
+      <div className="edp-orbs" />
+
+      {/* Top nav */}
+      <nav className="edp-nav">
+        <Link href="/explore" className="edp-back">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Explore
+        </Link>
+        {event.category && <span className="edp-cat">{event.category.toUpperCase()}</span>}
+      </nav>
+
+      {/* Split body */}
+      <div className="edp-body">
+        {/* LEFT — sticky cover */}
+        <aside className="edp-left">
+          <div className="edp-cover">
+            {cover
+              ? <img src={cover} alt="" className="edp-cover-img"/>
+              : <div className="edp-cover-ph">{event.title?.[0]}</div>}
+            <div className="edp-cover-gradient"/>
+          </div>
+          <div className="edp-left-meta">
+            <h1 className="edp-left-title">{event.title}</h1>
+            <div className="edp-left-org">
+              {profilePicture
+                ? <img src={profilePicture} alt="" className="edp-left-org-avatar"/>
+                : <span className="edp-left-org-avatar edp-left-org-ph">{initials}</span>}
+              <span>{organizerName}</span>
+            </div>
+          </div>
+        </aside>
+
+        {/* RIGHT — scrollable content */}
+        <main className="edp-right">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+
 function Icon({ name, size = 20, color = '#FFFFFF' }) {
   const props = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: color, strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
   if (name === 'chevron-left') return <svg {...props}><polyline points="15 18 9 12 15 6" /></svg>;
@@ -43,10 +97,19 @@ export default function EventDetailsView({ event }) {
   const [ticketCounts, setTicketCounts] = useState({});
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
     const t = requestAnimationFrame(() => setVisible(true));
     return () => cancelAnimationFrame(t);
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    setIsDesktop(mq.matches);
+    const h = (e) => setIsDesktop(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
   }, []);
 
   const organizerName =
@@ -122,6 +185,118 @@ export default function EventDetailsView({ event }) {
       ? `GET TICKETS · $${lowestPrice}`
       : 'GET TICKETS';
 
+  /* ── Desktop layout ── */
+  if (isDesktop) {
+    return (
+      <DesktopEventPage event={event}>
+        {/* Date / time / venue */}
+        <div className="edp-info-row">
+          <div className="edp-info-block">
+            <span className="edp-info-label">Date</span>
+            <span className="edp-info-val">{dateInfo.weekday}, {dateInfo.month} {dateInfo.day}</span>
+          </div>
+          <div className="edp-info-divider"/>
+          <div className="edp-info-block">
+            <span className="edp-info-label">Time</span>
+            <span className="edp-info-val">{timeLabel}</span>
+          </div>
+          <div className="edp-info-divider"/>
+          <a
+            className="edp-info-block edp-info-link"
+            href={mapsQuery ? `https://www.google.com/maps/search/?api=1&query=${mapsQuery}` : undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className="edp-info-label">Venue</span>
+            <span className="edp-info-val">{event.venue || 'TBA'}</span>
+            {event.address?.city && <span className="edp-info-sub">{event.address.city}{event.address.state ? `, ${event.address.state}` : ''} ↗</span>}
+          </a>
+        </div>
+
+        <div className="edp-attend">
+          <span>{formatCount(event.bookedSpots || 0)} attending</span>
+          <span className="edp-attend-dot"/>
+          <span>{spotsLeft === '∞' ? '∞' : formatCount(spotsLeft)} spots left</span>
+        </div>
+
+        {event.description && (
+          <section className="edp-section">
+            <h2 className="edp-section-title">About</h2>
+            <p className="edp-desc">{event.description}</p>
+          </section>
+        )}
+
+        {/* Inline ticket selector */}
+        {ticketTypes.length > 0 && (
+          <section className="edp-section">
+            <h2 className="edp-section-title">Tickets</h2>
+            <div className="edp-ticket-list">
+              {ticketTypes.map((ticket, i) => {
+                const name = ticket.name || ticket.type;
+                const count = ticketCounts[name] || 0;
+                const max = ticket.isUnlimited ? 99 : getTicketAvailability(ticket);
+                const price = ticket.isFree ? 'Free' : `$${ticket.price}`;
+                const perks = (ticket.includes || ticket.perks || []).filter(Boolean);
+                const updateCount = (delta) => {
+                  const next = Math.max(0, Math.min(max === Infinity ? 99 : max, count + delta));
+                  setTicketCounts((prev) => ({ ...prev, [name]: next }));
+                };
+                return (
+                  <div key={ticket.id || name || i} className="edp-ticket-row">
+                    <div className="edp-ticket-info">
+                      <div className="edp-ticket-top-row">
+                        <span className="edp-ticket-name">{name}</span>
+                        <span className="edp-ticket-price">{price}</span>
+                      </div>
+                      {perks.length > 0 && (
+                        <div className="edp-ticket-perks">
+                          {perks.map((p, j) => <span key={j}>· {p}</span>)}
+                        </div>
+                      )}
+                      <span className="edp-ticket-spots">
+                        {ticket.isUnlimited ? 'Unlimited spots' : `${ticket.availableQuantity ?? ticket.quantity ?? 0} remaining`}
+                      </span>
+                    </div>
+                    <div className="edp-qty">
+                      <button type="button" className="edp-qty-btn" onClick={() => updateCount(-1)} disabled={count === 0}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                      </button>
+                      <span className="edp-qty-count">{count}</span>
+                      <button type="button" className="edp-qty-btn edp-qty-add" onClick={() => updateCount(1)} disabled={count >= (max === Infinity ? 99 : max)}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Checkout bar */}
+        <div className="edp-checkout-bar">
+          <div className="edp-checkout-total">
+            {ticketCount > 0 && (
+              <>
+                <span className="edp-checkout-count">{ticketCount} ticket{ticketCount !== 1 ? 's' : ''}</span>
+                <span className="edp-checkout-amount">${total.toFixed(2)}</span>
+              </>
+            )}
+          </div>
+          <button
+            type="button"
+            className={`edp-checkout-btn${ticketCount === 0 || event.isSalesClosed ? ' disabled' : ''}`}
+            disabled={ticketCount === 0 || event.isSalesClosed}
+            onClick={handleCheckout}
+          >
+            {event.isSalesClosed ? 'Sales Closed' : ticketCount === 0 ? `Get Tickets${lowestPrice != null ? ` · from $${lowestPrice}` : ''}` : 'Proceed to Checkout'}
+          </button>
+        </div>
+      </DesktopEventPage>
+    );
+  }
+
+  /* ── Mobile layout (original) ── */
   return (
     <div className="ed-page">
       <nav className="ed-float-nav">

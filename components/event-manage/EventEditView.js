@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '../../lib/api-client';
 import CreateEventForm from '../CreateEventForm';
+import EventManageLayout from './EventManageLayout';
 
 export default function EventEditView({ event, profile, user, organizerId, backHref }) {
   const router = useRouter();
@@ -23,26 +23,24 @@ export default function EventEditView({ event, profile, user, organizerId, backH
   };
 
   return (
-    <div className="evm-page evm-page-edit">
-      <header className="evm-lip">
-        <Link href={backHref} className="evm-back">← Events</Link>
-        <span className="evm-lip-meta">Edit event</span>
-        {(event.status === 'upcoming' || !event.status) && (
-          <button type="button" className="evm-start-btn" onClick={handleStartEarly}>Start</button>
-        )}
-      </header>
-
-      <div className="evm-body evm-edit-body">
-        <CreateEventForm
-          mode="edit"
-          initialEvent={event}
-          profile={profile}
-          user={user}
-          organizerId={organizerId}
-          onSuccess={() => router.push(backHref)}
-          onCancel={() => router.push(backHref)}
-        />
-      </div>
-    </div>
+    <EventManageLayout
+      event={event}
+      backHref={backHref}
+      headerRight={
+        (event.status === 'upcoming' || !event.status) && (
+          <button type="button" className="evm-start-btn" onClick={handleStartEarly}>Start event</button>
+        )
+      }
+    >
+      <CreateEventForm
+        mode="edit"
+        initialEvent={event}
+        profile={profile}
+        user={user}
+        organizerId={organizerId}
+        onSuccess={() => router.push(backHref)}
+        onCancel={() => router.push(backHref)}
+      />
+    </EventManageLayout>
   );
 }
