@@ -267,7 +267,7 @@ export default function ExploreView({ events }) {
                 <div className="exd-cal-dropdown">
                   {dateFilter && (
                     <div className="exd-cal-active-date">
-                      <Icon name="calendar" size={11} color="#f5b642"/>
+                      <Icon name="calendar" size={11} color="#FF4B8C"/>
                       <span>{dateFilter.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                       <button type="button" onClick={() => setDateFilter(null)}>
                         <Icon name="x" size={12} color="rgba(255,255,255,0.4)"/>

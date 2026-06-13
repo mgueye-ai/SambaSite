@@ -232,7 +232,7 @@ export default function OrganizerDashboard() {
                 <AreaChart
                   data={trends.revenue30d?.map((d) => d.tickets) || []}
                   labels={trendLabels}
-                  color="#ff8a00"
+                  color="#4ade80"
                   formatY={fmtN}
                   height={130}
                 />
@@ -242,8 +242,8 @@ export default function OrganizerDashboard() {
             <div className="sdc-analytics-grid sdc-analytics-grid-3">
               <AnalyticsBand title="Event breakdown" meta="Status mix">
                 <DonutChart segments={[
-                  { label: 'Live', value: stats.live.length, color: '#4CAF50' },
-                  { label: 'Upcoming', value: stats.upcoming.length, color: '#f5b642' },
+                  { label: 'Live', value: stats.live.length, color: '#4ade80' },
+                  { label: 'Upcoming', value: stats.upcoming.length, color: '#FF4B8C' },
                   { label: 'Past', value: stats.past.length, color: 'rgba(255,255,255,0.2)' },
                 ]} />
               </AnalyticsBand>
@@ -254,7 +254,7 @@ export default function OrganizerDashboard() {
               </AnalyticsBand>
               <AnalyticsBand title="Top events" meta="Revenue">
                 {topRev.length ? topRev.map((e) => (
-                  <HBar key={e.id} label={e.title} value={e.revenue || 0} maxValue={maxR} color="#f5b642" display={fmt$(e.revenue || 0)} />
+                  <HBar key={e.id} label={e.title} value={e.revenue || 0} maxValue={maxR} color="#FF4B8C" display={fmt$(e.revenue || 0)} />
                 )) : <p className="sdc-empty">No events yet</p>}
               </AnalyticsBand>
             </div>
@@ -427,7 +427,7 @@ export default function OrganizerDashboard() {
                       label={e.title}
                       value={e.revenue || 0}
                       maxValue={Math.max(...events.map((ev) => ev.revenue || 0), 1)}
-                      color="#f5b642"
+                      color="#FF4B8C"
                       display={fmt$(e.revenue || 0)}
                     />
                   ))}

@@ -1,0 +1,232 @@
+/* Ticket share landing — Samba app vibe: black, pink/green accents */
+
+.tsx-root {
+  --tsx-bg: #070707;
+  --tsx-pink: #FF4B8C;
+  --tsx-green: #4ade80;
+  --tsx-muted: rgba(255, 255, 255, 0.62);
+  --tsx-border: rgba(255, 255, 255, 0.1);
+  --tsx-serif: var(--font-serif, 'Fraunces', serif);
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px 48px;
+  background:
+    radial-gradient(55% 45% at 50% 0%, rgba(255, 75, 140, 0.14) 0%, transparent 60%),
+    radial-gradient(40% 35% at 90% 30%, rgba(74, 222, 128, 0.08) 0%, transparent 55%),
+    radial-gradient(45% 40% at 10% 70%, rgba(74, 222, 128, 0.06) 0%, transparent 55%),
+    var(--tsx-bg);
+  color: #fff;
+}
+
+.tsx-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--tsx-border);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.tsx-cover {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: linear-gradient(135deg, rgba(255, 75, 140, 0.25), rgba(74, 222, 128, 0.15));
+}
+
+.tsx-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tsx-cover-ph {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--tsx-serif);
+  font-size: 64px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.tsx-cover-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(7, 7, 7, 0.85) 0%, transparent 55%);
+  pointer-events: none;
+}
+
+.tsx-body {
+  padding: 24px 24px 28px;
+}
+
+.tsx-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tsx-brand span {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--tsx-muted);
+  text-transform: uppercase;
+}
+
+.tsx-title {
+  font-family: var(--tsx-serif);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.tsx-hosted {
+  font-size: 14px;
+  color: var(--tsx-green);
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.tsx-date {
+  font-size: 14px;
+  color: var(--tsx-green);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.tsx-venue {
+  font-size: 14px;
+  color: var(--tsx-muted);
+  margin-bottom: 20px;
+}
+
+.tsx-message {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--tsx-muted);
+  margin-bottom: 24px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--tsx-border);
+}
+
+.tsx-message.claimed {
+  color: rgba(255, 180, 200, 0.9);
+  border-color: rgba(255, 75, 140, 0.25);
+  background: rgba(255, 75, 140, 0.08);
+}
+
+.tsx-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tsx-btn-primary {
+  width: 100%;
+  padding: 15px 20px;
+  border-radius: 14px;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--tsx-pink) 0%, #e0356a 100%);
+  box-shadow: 0 8px 28px rgba(255, 75, 140, 0.35);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.tsx-btn-primary:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.tsx-btn-primary:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.tsx-store-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: tsx-fade-in 0.3s ease;
+}
+
+@keyframes tsx-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tsx-store-hint {
+  font-size: 13px;
+  color: var(--tsx-muted);
+  text-align: center;
+}
+
+.tsx-btn-store {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 18px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  border: 1px solid var(--tsx-border);
+  background: rgba(255, 255, 255, 0.05);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tsx-btn-store:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.tsx-btn-store.ios {
+  border-color: rgba(255, 75, 140, 0.35);
+}
+
+.tsx-btn-store.android {
+  border-color: rgba(74, 222, 128, 0.35);
+}
+
+.tsx-error {
+  text-align: center;
+  max-width: 420px;
+}
+
+.tsx-error h1 {
+  font-family: var(--tsx-serif);
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.tsx-error p {
+  color: var(--tsx-muted);
+  margin-bottom: 24px;
+}
+
+.tsx-error a {
+  display: inline-flex;
+  padding: 12px 22px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--tsx-border);
+  font-weight: 600;
+}

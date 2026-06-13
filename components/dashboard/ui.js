@@ -36,7 +36,7 @@ function toPoints(data, w, h, pad = 4) {
   }));
 }
 
-export function Sparkline({ data, width = 280, height = 54, color = '#f5b642' }) {
+export function Sparkline({ data, width = 280, height = 54, color = '#FF4B8C' }) {
   if (!data?.length || data.length < 2) return null;
   const pts = toPoints(data, width, height);
   const line = smoothPath(pts);
@@ -58,7 +58,7 @@ export function Sparkline({ data, width = 280, height = 54, color = '#f5b642' })
   );
 }
 
-export function AreaChart({ data, labels, width = 560, height = 160, color = '#f5b642', formatY = fmt$ }) {
+export function AreaChart({ data, labels, width = 560, height = 160, color = '#FF4B8C', formatY = fmt$ }) {
   const gradId = useId().replace(/:/g, '');
 
   if (!data?.length || data.length < 2) {
@@ -155,7 +155,7 @@ export function DonutChart({ segments, size = 140 }) {
   );
 }
 
-export function BarChart({ data, labels, width = 560, height = 120, color = '#f5b642' }) {
+export function BarChart({ data, labels, width = 560, height = 120, color = '#FF4B8C' }) {
   if (!data?.length) return <p className="sdc-empty-chart">Not enough data yet</p>;
   const max = Math.max(...data, 1);
   const pad = { l: 12, r: 12, t: 8, b: 24 };
@@ -185,7 +185,7 @@ export function BarChart({ data, labels, width = 560, height = 120, color = '#f5
   );
 }
 
-export function HBar({ label, value, maxValue, color = '#f5b642', display }) {
+export function HBar({ label, value, maxValue, color = '#FF4B8C', display }) {
   const pct = maxValue > 0 ? (value / maxValue) * 100 : 0;
   return (
     <div className="sdc-hbar">

@@ -160,7 +160,7 @@ export default function AdminView() {
 
             <div className="sdc-analytics-charts">
               <AnalyticsBand title="Revenue trend" meta="Last 30 days">
-                <AreaChart data={revenueByDay.data} labels={revenueByDay.labels} color="#f5b642" height={130} />
+                <AreaChart data={revenueByDay.data} labels={revenueByDay.labels} color="#FF4B8C" height={130} />
               </AnalyticsBand>
               <AnalyticsBand title="Platform snapshot">
                 <div className="sdc-payout-kv-list">
@@ -182,7 +182,7 @@ export default function AdminView() {
                     label={org.organizationName || org.name}
                     value={org.revenue || 0}
                     maxValue={maxOrgRev}
-                    color="#f5b642"
+                    color="#FF4B8C"
                     display={fmt$(org.revenue || 0)}
                   />
                 )) : <p className="sdc-empty">No organizers yet</p>}
@@ -383,7 +383,7 @@ export default function AdminView() {
                     label={org.organizationName || org.name}
                     value={org.revenue || 0}
                     maxValue={maxOrgRev}
-                    color="#f5b642"
+                    color="#FF4B8C"
                     display={`${fmt$(org.revenue || 0)} · ${fmtN(org.eventCount || 0)} events`}
                   />
                 ))}

@@ -7,10 +7,17 @@
 }
 
 :root {
-  --primary: #40E0FF;
-  --accent: #40E0FF;
+  --samba-pink: #FF4B8C;
+  --samba-pink-dark: #e0356a;
+  --samba-green: #4ade80;
+  --samba-green-dark: #22c55e;
+  --samba-bg-deep: #030303;
+  --samba-bg: #070707;
+  --samba-header: #1a1a1a;
+  --primary: #4ade80;
+  --accent: #4ade80;
   --accent-pink: #FF4B8C;
-  --bg: #0a0a0a;
+  --bg: #070707;
   --surface: #1A1A1A;
   --surface-2: #2A2A2A;
   --surface-3: #333333;
@@ -19,7 +26,7 @@
   --text-muted: #666666;
   --border: #404040;
   --border-subtle: rgba(255, 255, 255, 0.06);
-  --success: #4CAF50;
+  --success: #4ade80;
   --radius: 10px;
   --radius-lg: 14px;
   --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -147,9 +154,9 @@ button {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(55% 45% at 50% 0%, rgba(255, 138, 0, 0.12) 0%, transparent 60%),
-    radial-gradient(40% 35% at 88% 28%, rgba(245, 182, 66, 0.07) 0%, transparent 55%),
-    radial-gradient(45% 40% at 12% 72%, rgba(255, 138, 0, 0.05) 0%, transparent 55%),
+    radial-gradient(55% 45% at 50% 0%, rgba(74, 222, 128, 0.12) 0%, transparent 60%),
+    radial-gradient(40% 35% at 88% 28%, rgba(255, 75, 140, 0.07) 0%, transparent 55%),
+    radial-gradient(45% 40% at 12% 72%, rgba(74, 222, 128, 0.05) 0%, transparent 55%),
     #030303;
 }
 
@@ -215,7 +222,7 @@ button {
 
 .app-login-input input:focus {
   outline: none;
-  border-color: rgba(245, 182, 66, 0.4);
+  border-color: rgba(255, 75, 140, 0.4);
   background: rgba(255, 255, 255, 0.06);
 }
 
@@ -235,7 +242,7 @@ button {
 }
 
 .app-login-edit:hover {
-  color: #f5b642;
+  color: #FF4B8C;
 }
 
 .app-login-spinner {
@@ -246,7 +253,7 @@ button {
   width: 18px;
   height: 18px;
   border: 2px solid rgba(255, 255, 255, 0.12);
-  border-top-color: #f5b642;
+  border-top-color: #FF4B8C;
   border-radius: 50%;
   animation: appLoginSpin 0.7s linear infinite;
 }
@@ -268,16 +275,16 @@ button {
   border-radius: 12px;
   font-size: 16px;
   font-weight: 600;
-  color: #1a0e00;
-  background: linear-gradient(135deg, #f5b642 0%, #ff8a00 100%);
-  box-shadow: 0 8px 24px -6px rgba(255, 138, 0, 0.4);
+  color: #000;
+  background: linear-gradient(135deg, #FF4B8C 0%, #e0356a 100%);
+  box-shadow: 0 8px 24px -6px rgba(74, 222, 128, 0.4);
   transition: filter 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 .app-login-btn:hover:not(:disabled) {
   filter: brightness(1.05);
   transform: translateY(-1px);
-  box-shadow: 0 12px 32px -6px rgba(255, 138, 0, 0.5);
+  box-shadow: 0 12px 32px -6px rgba(74, 222, 128, 0.5);
 }
 
 .app-login-btn:disabled {
@@ -297,7 +304,7 @@ button {
 }
 
 .app-login-note a:hover {
-  color: #f5b642;
+  color: #FF4B8C;
 }
 
 .back-link {
@@ -627,7 +634,7 @@ button {
 }
 
 .feature-card:hover {
-  border-color: rgba(64, 224, 255, 0.3);
+  border-color: rgba(74, 222, 128, 0.3);
 }
 
 .feature-icon {
@@ -1288,15 +1295,15 @@ td {
   justify-content: space-between;
   gap: 16px;
   padding: 10px 32px;
-  background: rgba(64, 224, 255, 0.12);
-  border-bottom: 1px solid rgba(64, 224, 255, 0.25);
+  background: rgba(74, 222, 128, 0.12);
+  border-bottom: 1px solid rgba(74, 222, 128, 0.25);
   font-size: 13px;
 }
 
 .impersonate-banner button {
   padding: 6px 14px;
   border-radius: 8px;
-  background: rgba(64, 224, 255, 0.2);
+  background: rgba(74, 222, 128, 0.2);
   color: var(--primary);
   font-size: 12px;
   font-weight: 600;
@@ -1430,7 +1437,7 @@ td {
 
 /* ── Admin ── */
 .admin-page .admin-header {
-  border-bottom-color: rgba(64, 224, 255, 0.2);
+  border-bottom-color: rgba(74, 222, 128, 0.2);
 }
 
 .admin-badge {
@@ -1441,7 +1448,7 @@ td {
   display: inline-block;
   padding: 4px 12px;
   border-radius: 20px;
-  background: rgba(64, 224, 255, 0.15);
+  background: rgba(74, 222, 128, 0.15);
   color: var(--primary);
   font-size: 11px;
   font-weight: 700;
@@ -2195,7 +2202,7 @@ a.ed-info-block:hover .ed-map-hint {
   font-size: 12px;
   color: var(--primary);
   padding: 8px;
-  background: rgba(64, 224, 255, 0.1);
+  background: rgba(74, 222, 128, 0.1);
   border-radius: 8px;
   margin-bottom: 16px;
 }
@@ -2361,8 +2368,8 @@ a.ed-info-block:hover .ed-map-hint {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(55% 30% at 80% 10%, rgba(245, 182, 66, 0.10) 0%, transparent 60%),
-    radial-gradient(40% 25% at 15% 65%, rgba(255, 138, 0, 0.07) 0%, transparent 55%);
+    radial-gradient(55% 30% at 80% 10%, rgba(255, 75, 140, 0.10) 0%, transparent 60%),
+    radial-gradient(40% 25% at 15% 65%, rgba(74, 222, 128, 0.07) 0%, transparent 55%);
 }
 
 .ex-page > * { position: relative; z-index: 1; }
@@ -2716,8 +2723,8 @@ a.ed-info-block:hover .ed-map-hint {
   justify-content: space-between;
   gap: 16px;
   padding: 10px 24px;
-  background: rgba(64, 224, 255, 0.1);
-  border-bottom: 1px solid rgba(64, 224, 255, 0.25);
+  background: rgba(74, 222, 128, 0.1);
+  border-bottom: 1px solid rgba(74, 222, 128, 0.25);
   font-size: 14px;
 }
 
@@ -2726,9 +2733,9 @@ a.ed-info-block:hover .ed-map-hint {
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #40e0ff;
-  background: rgba(64, 224, 255, 0.12);
-  border: 1px solid rgba(64, 224, 255, 0.3);
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.3);
 }
 
 .sdc-sidebar {
@@ -4182,7 +4189,7 @@ a.ed-info-block:hover .ed-map-hint {
   font-weight: 800;
 }
 .co-summary-total span { color: #fff !important; }
-.co-summary-total span:last-child { color: #f5b642 !important; font-size: 18px; }
+.co-summary-total span:last-child { color: #FF4B8C !important; font-size: 18px; }
 
 /* ── Right panel ── */
 .co-right {
@@ -4272,8 +4279,8 @@ a.ed-info-block:hover .ed-map-hint {
 }
 .co-checkbox:hover .co-checkbox-box { border-color: rgba(255,255,255,0.4); }
 .co-checkbox input:checked + .co-checkbox-box {
-  background: #f5b642;
-  border-color: #f5b642;
+  background: #FF4B8C;
+  border-color: #FF4B8C;
   color: #000;
 }
 .co-checkbox-label {
@@ -4302,7 +4309,7 @@ a.ed-info-block:hover .ed-map-hint {
 .co-submit {
   width: 100%;
   padding: 16px;
-  background: #f5b642;
+  background: #FF4B8C;
   color: #000;
   font-size: 13px;
   font-weight: 800;
@@ -4386,7 +4393,7 @@ a.ed-info-block:hover .ed-map-hint {
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.12em;
-  color: #f5b642;
+  color: #FF4B8C;
   padding: 3px 8px;
   border: 1px solid rgba(245,182,66,0.25);
 }
@@ -4584,7 +4591,7 @@ a.ed-info-block:hover .ed-map-hint {
 .edp-ticket-info { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0; }
 .edp-ticket-top-row { display: flex; align-items: baseline; gap: 12px; }
 .edp-ticket-name { font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.9); }
-.edp-ticket-price { font-size: 15px; font-weight: 800; color: #f5b642; }
+.edp-ticket-price { font-size: 15px; font-weight: 800; color: #FF4B8C; }
 .edp-ticket-perks { display: flex; flex-wrap: wrap; gap: 6px; }
 .edp-ticket-perks span { font-size: 11px; color: rgba(255,255,255,0.35); }
 .edp-ticket-spots { font-size: 11px; color: rgba(255,255,255,0.25); }
@@ -4635,7 +4642,7 @@ a.ed-info-block:hover .ed-map-hint {
 .edp-checkout-amount { font-size: 20px; font-weight: 800; color: #fff; }
 .edp-checkout-btn {
   padding: 14px 32px;
-  background: #f5b642;
+  background: #FF4B8C;
   color: #000;
   font-size: 13px;
   font-weight: 800;
@@ -4652,7 +4659,7 @@ a.ed-info-block:hover .ed-map-hint {
 
 /* ════════════════════════════════════════════
    Desktop Explore Layout (768px+)
-   Matches dashboard theme: #030303 bg, #f5b642 gold, sharp corners
+   Matches dashboard theme: #030303 bg, pink/green accents, sharp corners
 ════════════════════════════════════════════ */
 .exd-page {
   display: flex;
@@ -4673,9 +4680,9 @@ a.ed-info-block:hover .ed-map-hint {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(50% 35% at 75% 15%, rgba(245, 182, 66, 0.10) 0%, transparent 60%),
-    radial-gradient(40% 30% at 10% 60%, rgba(255, 138, 0, 0.07) 0%, transparent 55%),
-    radial-gradient(35% 25% at 50% 95%, rgba(245, 182, 66, 0.05) 0%, transparent 55%);
+    radial-gradient(50% 35% at 75% 15%, rgba(255, 75, 140, 0.10) 0%, transparent 60%),
+    radial-gradient(40% 30% at 10% 60%, rgba(74, 222, 128, 0.07) 0%, transparent 55%),
+    radial-gradient(35% 25% at 50% 95%, rgba(255, 75, 140, 0.05) 0%, transparent 55%);
 }
 
 .exd-page > * { position: relative; z-index: 1; }
@@ -4768,8 +4775,8 @@ a.ed-info-block:hover .ed-map-hint {
   transition: background 0.15s, border-color 0.15s;
 }
 .exd-cal-btn.ex-cal-btn-active {
-  background: #f5b642 !important;
-  border-color: #f5b642 !important;
+  background: #FF4B8C !important;
+  border-color: #FF4B8C !important;
 }
 
 /* Right: event count */
@@ -4827,7 +4834,7 @@ a.ed-info-block:hover .ed-map-hint {
   border: 1px solid rgba(245,182,66,0.18);
   border-radius: 8px;
   font-size: 12px;
-  color: #f5b642;
+  color: #FF4B8C;
 }
 .exd-cal-active-date span { flex: 1; font-weight: 600; }
 .exd-cal-active-date button {
@@ -4854,7 +4861,7 @@ a.ed-info-block:hover .ed-map-hint {
   border-radius: 8px;
 }
 .exd-cal-dropdown .ex-cal-sel {
-  background: #f5b642 !important;
+  background: #FF4B8C !important;
   color: #000 !important;
 }
 .exd-cal-dropdown .ex-cal-today {
@@ -4952,7 +4959,7 @@ a.ed-info-block:hover .ed-map-hint {
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.12em;
-  color: #f5b642;
+  color: #FF4B8C;
   text-transform: uppercase;
 }
 
@@ -5089,7 +5096,7 @@ a.ed-info-block:hover .ed-map-hint {
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: #f5b642;
+  color: #FF4B8C;
   background: rgba(0,0,0,0.6);
   padding: 3px 6px;
   border-radius: 4px;
@@ -5140,7 +5147,7 @@ a.ed-info-block:hover .ed-map-hint {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #f5b642;
+  background: #FF4B8C;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -4,7 +4,7 @@
     "details": [
       {
         "appID": "6TNGS7897R.com.sambaevents",
-        "paths": ["/events/*"]
+        "paths": ["/events/*", "/tickets/share/*", "/scanners/join/*"]
       }
     ]
   }

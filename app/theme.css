@@ -49,19 +49,19 @@ body {
 
 /* ── Login ── */
 .app-login-btn {
-  background: linear-gradient(135deg, #f5b642 0%, #ff8a00 100%);
+  background: linear-gradient(135deg, #FF4B8C 0%, #e0356a 100%);
   color: #1a0e00;
-  box-shadow: 0 8px 24px -6px rgba(255, 138, 0, 0.4);
+  box-shadow: 0 8px 24px -6px rgba(74, 222, 128, 0.4);
 }
 
 .app-login-btn:hover:not(:disabled) {
   transform: translateY(-1px);
   filter: brightness(1.05);
-  box-shadow: 0 12px 32px -6px rgba(255, 138, 0, 0.5);
+  box-shadow: 0 12px 32px -6px rgba(74, 222, 128, 0.5);
 }
 
 .app-login-input input:focus {
-  border-color: rgba(245, 182, 66, 0.4);
+  border-color: rgba(255, 75, 140, 0.4);
   background: rgba(255, 255, 255, 0.06);
 }
 
